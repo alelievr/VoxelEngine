@@ -1,0 +1,3 @@
+[submodule "Deps/LWGC"]
+	path = Deps/LWGC
+	url = https://github.com/alelievr/LightweightGraphicCore
