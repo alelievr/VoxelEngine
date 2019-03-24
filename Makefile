@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2019/03/24 18:36:08 by alelievr         ###   ########.fr        #
+#    Updated: 2019/03/24 19:54:32 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -32,12 +32,13 @@ CPPVERSION	=	c++1z
 #Example $> make DEBUG=2 will set debuglevel to 2
 
 #	Includes
-INCDIRS		=	Sources Deps/LWGC/Sources
+LWGC_PATH	=	Deps/LWGC
+INCDIRS		=	Sources $(LWGC_PATH)/Sources ${VULKAN_SDK}/include
 
 #	Libraries
-LWGC_DEPS	=	Deps/LWGC/Deps
-LIBDIRS		=	$(LWGC_DEPS) $(LWGC_DEPS)/glfw/src/ $(LWGC_DEPS)/imgui/ $(LWGC_DEPS)/glslang/build/SPIRV $(LWGC_DEPS)/glslang/build/hlsl $(LWGC_DEPS)/glslang/build/glslang ${VULKAN_SDK}/lib $(LWGC_DEPS)/SPIRV-Cross
-LDLIBS		=	-lLWGC -lglfw3 -lImGUI -lvulkan -lglslang -lSPIRV -lHLSL -lSPVRemapper Deps/SPIRV-Cross/libspirv-cross.a
+LWGC_DEPS	=	$(LWGC_PATH)/Deps
+LIBDIRS		=	$(LWGC_PATH) $(LWGC_DEPS) $(LWGC_DEPS)/glfw/src/ $(LWGC_DEPS)/imgui/ $(LWGC_DEPS)/glslang/build/SPIRV $(LWGC_DEPS)/glslang/build/hlsl $(LWGC_DEPS)/glslang/build/glslang ${VULKAN_SDK}/lib $(LWGC_DEPS)/SPIRV-Cross
+LDLIBS		=	-lLWGC -lglfw3 -lImGUI -lvulkan -lglslang -lSPIRV -lHLSL -lSPVRemapper $(LWGC_DEPS)/SPIRV-Cross/libspirv-cross.a
 LWGCLIB		=	Deps/LWGC/libLWGC.a
 
 #	Output
