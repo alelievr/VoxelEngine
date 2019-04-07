@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2019/03/24 19:54:32 by alelievr         ###   ########.fr        #
+#    Updated: 2019/04/07 12:47:16 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,6 +17,7 @@
 #	Sources
 SRCDIR		=	Sources
 SRC			=	Main.cpp			\
+				TerrainSettings.cpp	\
 
 #	Objects
 OBJDIR		=	obj
@@ -33,13 +34,14 @@ CPPVERSION	=	c++1z
 
 #	Includes
 LWGC_PATH	=	Deps/LWGC
-INCDIRS		=	Sources $(LWGC_PATH)/Sources ${VULKAN_SDK}/include
+INCDIRS		=	Sources $(LWGC_PATH)/Sources ${VULKAN_SDK}/include Deps/yaml-cpp/include
 
 #	Libraries
 LWGC_DEPS	=	$(LWGC_PATH)/Deps
-LIBDIRS		=	$(LWGC_PATH) $(LWGC_DEPS) $(LWGC_DEPS)/glfw/src/ $(LWGC_DEPS)/imgui/ $(LWGC_DEPS)/glslang/build/SPIRV $(LWGC_DEPS)/glslang/build/hlsl $(LWGC_DEPS)/glslang/build/glslang ${VULKAN_SDK}/lib $(LWGC_DEPS)/SPIRV-Cross
-LDLIBS		=	-lLWGC -lglfw3 -lImGUI -lvulkan -lglslang -lSPIRV -lHLSL -lSPVRemapper $(LWGC_DEPS)/SPIRV-Cross/libspirv-cross.a
+LIBDIRS		=	$(LWGC_PATH) $(LWGC_DEPS) $(LWGC_DEPS)/glfw/src/ $(LWGC_DEPS)/ImGUI_Volk/ $(LWGC_DEPS)/glslang/build/SPIRV $(LWGC_DEPS)/glslang/build/hlsl $(LWGC_DEPS)/glslang/build/glslang ${VULKAN_SDK}/lib $(LWGC_DEPS)/SPIRV-Cross Deps/yaml-cpp
+LDLIBS		=	-lLWGC -lglfw3 -lImGUI -lvulkan -lglslang -lSPIRV -lHLSL -lSPVRemapper $(LWGC_DEPS)/SPIRV-Cross/libspirv-cross.a -lyaml-cpp
 LWGCLIB		=	Deps/LWGC/libLWGC.a
+YAMLLIB		=	Deps/yaml-cpp/libyaml-cpp.a
 
 #	Output
 NAME		=	vox
@@ -82,19 +84,19 @@ CNORM_OK	=	"231m"
 
 OS			:=	$(shell uname -s)
 PROC		:=	$(shell uname -p)
-DEBUGFLAGS	=	
-LINKDEBUG	=	
-OPTFLAGS	=	
-#COMPILATION	=	
+DEBUGFLAGS	=
+LINKDEBUG	=
+OPTFLAGS	=
+#COMPILATION	=
 
 ifeq "$(OS)" "Windows_NT"
 endif
 ifeq "$(OS)" "Linux"
-	LDLIBS		+= 
+	LDLIBS		+=
 	DEBUGFLAGS	+= -fsanitize=memory -fsanitize-memory-use-after-dtor -fsanitize=thread
 endif
 ifeq "$(OS)" "Darwin"
-	FRAMEWORK	=	
+	FRAMEWORK	=
 endif
 
 COMPILER	=	$(shell readlink $(which cc))
@@ -156,11 +158,11 @@ ifneq ($(filter 2,$(strip $(DEBUGLEVEL)) ${DEBUG}),)
 endif
 
 ifneq ($(filter 1,$(strip $(OPTLEVEL)) ${OPTI}),)
-	DEBUGFLAGS = 
+	DEBUGFLAGS =
 	OPTFLAGS = $(OPTFLAGS1)
 endif
 ifneq ($(filter 2,$(strip $(OPTLEVEL)) ${OPTI}),)
-	DEBUGFLAGS = 
+	DEBUGFLAGS =
 	OPTFLAGS = $(OPTFLAGS1) $(OPTFLAGS2)
 endif
 
@@ -173,15 +175,7 @@ ifneq ($(filter %.cpp,$(SRC)),)
 endif
 
 ifdef ${NOWERROR}
-	WERROR = 
-endif
-
-ifeq "$(strip $(LIBFT))" "2"
-ifneq ($(wildcard ./libft),)
-	LIBDIRS += "libft"
-	LDLIBS += "-lft"
-	INCDIRS += "libft/include"
-endif
+	WERROR =
 endif
 
 #################
@@ -189,13 +183,18 @@ endif
 #################
 
 #	First target
-all: $(NAME)
+all: check_env $(NAME)
 
 $(LWGCLIB):
+	@git submodule update --init
 	make -C Deps/LWGC
 
+$(YAMLLIB):
+	@git submodule update --init
+	@cd Deps/yaml-cpp/ && cmake . && make -j
+
 #	Linking
-$(NAME): $(LWGCLIB) $(OBJ)
+$(NAME): $(LWGCLIB) $(YAMLLIB) $(OBJ)
 	@$(if $(findstring lft,$(LDLIBS)),$(call color_exec_t,$(CCLEAR),$(CCLEAR),\
 		make -j 4 -C libft))
 	@$(call color_exec,$(CLINK_T),$(CLINK),"Link of $(NAME):",\
@@ -216,6 +215,11 @@ $(OBJDIR)/%.o: %.s
 	@mkdir -p $(OBJDIR)/$(dir $<)
 	@$(call color_exec,$(COBJ_T),$(COBJ),"Object: $@",\
 		$(NASM) -f macho64 -o $@ $<)
+
+check_env:
+ifndef VULKAN_SDK
+	$(error VULKAN_SDK is not set, please run . ./InitVulkanEnv_OSX)
+endif
 
 #	Removing objects
 clean:
@@ -348,4 +352,4 @@ coffee:
 	@echo '         ""--..,,_____            _____,,..--"""'''
 	@echo '                      """------"""'
 
-.PHONY: all clean fclean re norme codesize
+.PHONY: all clean fclean re norme codesize check_env
