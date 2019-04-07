@@ -18,6 +18,7 @@
 SRCDIR		=	Sources
 SRC			=	Main.cpp			\
 				TerrainSettings.cpp	\
+				VoxelEngine.cpp		\
 
 #	Objects
 OBJDIR		=	obj
@@ -96,7 +97,7 @@ ifeq "$(OS)" "Linux"
 	DEBUGFLAGS	+= -fsanitize=memory -fsanitize-memory-use-after-dtor -fsanitize=thread
 endif
 ifeq "$(OS)" "Darwin"
-	FRAMEWORK	=
+	FRAMEWORK	= OpenGL AppKit IOKit CoreVideo
 endif
 
 COMPILER	=	$(shell readlink $(which cc))
@@ -233,7 +234,8 @@ fclean: clean
 		$(RM) $(NAME))
 
 #	All removing then compiling
-re: fclean all
+re: fclean
+	@$(MAKE) all
 
 f:	all run
 

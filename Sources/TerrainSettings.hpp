@@ -36,7 +36,6 @@ class		TerrainSettings
 		std::vector< NoiseSettings >	_noiseSettings;
 		// NoiseTreeCSG	_noiseTree; // TODO
 
-
 	public:
 		TerrainSettings(void);
 		TerrainSettings(const TerrainSettings &) = delete;

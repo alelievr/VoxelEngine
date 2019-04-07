@@ -15,12 +15,14 @@ TerrainSettings::~TerrainSettings(void)
 
 TerrainSettings		TerrainSettings::Load(const std::string & fileName) noexcept
 {
-
+	std::cout << "Load Terrain settings: TODO" << std::endl;
+	return TerrainSettings{};
 }
 
 bool		TerrainSettings::Save(const std::string & fileName) noexcept
 {
-
+	std::cout << "Save Terrain settings: TODO" << std::endl;
+	return false;
 }
 
 size_t		TerrainSettings::GetChunkSize(void) const { return (this->_chunkSize); }
