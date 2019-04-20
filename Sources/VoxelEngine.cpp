@@ -13,6 +13,8 @@ VoxelEngine::VoxelEngine(TerrainSettings & settings)
 
 	Load(settings);
 
+	app.Init();
+
 	// We must Open the window before doing anything related to vulkan
 	app.Open("Vox", 1920, 1200, WindowFlag::Resizable | WindowFlag::Decorated | WindowFlag::Focused);
 

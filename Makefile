@@ -93,26 +93,11 @@ OPTFLAGS	=
 ifeq "$(OS)" "Windows_NT"
 endif
 ifeq "$(OS)" "Linux"
-	LDLIBS		+=
+	LDLIBS		+= -ldl -lpthread -lX11
 	DEBUGFLAGS	+= -fsanitize=memory -fsanitize-memory-use-after-dtor -fsanitize=thread
 endif
 ifeq "$(OS)" "Darwin"
 	FRAMEWORK	= OpenGL AppKit IOKit CoreVideo
-endif
-
-COMPILER	=	$(shell readlink $(which cc))
-ifneq (,$(findstring clang++,$(COMPILER)))
-	#Clang++ compiler
-	CFLAGS	+= -dead_strip
-else ifneq (,$(findstring clang,$(COMPILER)))
-	#Clang compiler
-	CFLAGS	+= -dead_strip
-else ifneq (,$(findstring gcc,$(COMPILER)))
-	#GCC compiler
-	CFLAGS	+=	--gc-sections
-else ifneq (,$(findstring gcc++,$(COMPILER)))
-	#G++ compiler
-	CFLAGS	+=	--gc-sections
 endif
 
 #################
@@ -199,7 +184,7 @@ $(NAME): $(LWGCLIB) $(YAMLLIB) $(OBJ)
 	@$(if $(findstring lft,$(LDLIBS)),$(call color_exec_t,$(CCLEAR),$(CCLEAR),\
 		make -j 4 -C libft))
 	@$(call color_exec,$(CLINK_T),$(CLINK),"Link of $(NAME):",\
-		$(LINKER) $(WERROR) $(CFLAGS) $(LDFLAGS) $(LDLIBS) $(OPTFLAGS) $(DEBUGFLAGS) $(LINKDEBUG) $(VFRAME) -o $@ $^)
+		$(LINKER) $(WERROR) $(CFLAGS) $(LDFLAGS) $(OPTFLAGS) $(DEBUGFLAGS) $(LINKDEBUG) $(VFRAME) -o $@ $^ $(LDLIBS))
 
 $(OBJDIR)/%.o: %.cpp $(INCFILES)
 	@mkdir -p $(OBJDIR)/$(dir $<)
