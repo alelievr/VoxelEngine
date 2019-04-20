@@ -6,16 +6,15 @@ VoxelEngine::VoxelEngine(TerrainSettings & settings)
 	EventSystem *	es = app.GetEventSystem();
 	Hierarchy *		hierarchy = app.GetHierarchy();
 
-	RegisterEvents(es, &app);
-
-	ShaderSource::AddIncludePath(".");
-	ShaderSource::AddIncludePath("Deps/LWGC");
-	ShaderSource::AddIncludePath("Deps/LWGC/Shaders");
-	ShaderSource::AddIncludePath("Shaders");
+	ShaderSource::AddIncludePath("./");
+	ShaderSource::AddIncludePath("Deps/LWGC/");
+	ShaderSource::AddIncludePath("Deps/LWGC/Shaders/");
+	ShaderSource::AddIncludePath("Shaders/");
 
 	Load(settings);
 
 	app.Init();
+	RegisterEvents(es, &app);
 
 	// We must Open the window before doing anything related to vulkan
 	app.Open("Vox", 1920, 1200, WindowFlag::Resizable | WindowFlag::Decorated | WindowFlag::Focused);
