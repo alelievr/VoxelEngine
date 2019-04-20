@@ -1,6 +1,6 @@
 #include "Common/UniformGraphic.hlsl"
-#include "Common/InputGraphic.hlsl"
 #include "Common/Utils.hlsl"
+#include "Common/VoxelStructs.hlsl"
 
 struct FragmentOutput
 {
@@ -22,7 +22,7 @@ StructuredBuffer< SizeOffset >	sizeOffsets; // Metal 1 does not support Buffer<>
 [vk::binding(1, 4)]
 ConstantBuffer< Atlas >	atlas;
 
-FragmentOutput main(FragmentInput i, float depth : SV_DEPTH)
+FragmentOutput main(VoxelFragmentInput i, float depth : SV_DEPTH)
 {
 	FragmentOutput	o;
 
