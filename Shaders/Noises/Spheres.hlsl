@@ -1,11 +1,10 @@
-}#include "Common/InputCompute.hlsl"
+#include "Common/InputCompute.hlsl"
 #include "Common/UniformStructs.hlsl"
 
 [vk::binding(0, 0)]
 ConstantBuffer< LWGC_PerFrame > frame;
 
-[vk::binding(0, 1)]
-uniform RWTexture3D< half > noiseVolume;
+RWTexture3D< float > noiseVolume;
 
 [numthreads(8, 8, 8)]
 void        main(ComputeInput i)
@@ -15,6 +14,5 @@ void        main(ComputeInput i)
     // Basic domain repetition
     uv = frac(uv);
 
-    GroupMemoryBarrierWithGroupSync();
-
 	noiseVolume[i.dispatchThreadId.xy] = half4(noise(uv * 10 + frame.time.x), 0, 0, 1);
+}

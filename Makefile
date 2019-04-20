@@ -174,7 +174,7 @@ all: check_env $(NAME)
 
 $(LWGCLIB):
 	@git submodule update --init
-	make -C Deps/LWGC
+	@make -C Deps/LWGC
 
 $(YAMLLIB):
 	@git submodule update --init

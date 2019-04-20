@@ -26,9 +26,9 @@ void	VoxelRenderPipeline::Initialize(SwapChain * swapChain)
 	CreateVertexDescription();
 
 	// Allocate the vertex buffer:
-	Vk::CreateBuffer(sizeof(VoxelVertexAttributes) * 128 * 128 * 64 * 4, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexMemory);
+	Vk::CreateBuffer(sizeof(VoxelVertexAttributes) * 128 * 128 * 64 * 4, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexMemory);
 	// Allocate one draw buffer:
-	Vk::CreateBuffer(sizeof(VkDrawIndirectCommand), VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, drawBuffer, drawMemory);
+	Vk::CreateBuffer(sizeof(VkDrawIndirectCommand), VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, drawBuffer, drawMemory);
 
 	unlitMinecraftMaterial->SetVertexInputState(voxelVertexInputStateInfo);
 
