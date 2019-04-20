@@ -10,6 +10,8 @@ VoxelEngine::VoxelEngine(TerrainSettings & settings)
 
 	ShaderSource::AddIncludePath(".");
 	ShaderSource::AddIncludePath("Deps/LWGC");
+	ShaderSource::AddIncludePath("Deps/LWGC/Shaders");
+	ShaderSource::AddIncludePath("Shaders");
 
 	Load(settings);
 
