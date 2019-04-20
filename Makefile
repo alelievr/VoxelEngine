@@ -16,9 +16,10 @@
 
 #	Sources
 SRCDIR		=	Sources
-SRC			=	Main.cpp			\
-				TerrainSettings.cpp	\
-				VoxelEngine.cpp		\
+SRC			=	Main.cpp				\
+				TerrainSettings.cpp		\
+				VoxelEngine.cpp			\
+				VoxelRenderPipeline.cpp	\
 
 #	Objects
 OBJDIR		=	obj

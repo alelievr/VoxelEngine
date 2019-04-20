@@ -1,4 +1,5 @@
 #include "VoxelEngine.hpp"
+#include "VoxelRenderPipeline.hpp"
 
 VoxelEngine::VoxelEngine(TerrainSettings & settings)
 {
@@ -12,6 +13,8 @@ VoxelEngine::VoxelEngine(TerrainSettings & settings)
 	ShaderSource::AddIncludePath("Shaders/");
 
 	Load(settings);
+
+	RenderPipelineManager::SetCurrentRenderPipeline(new VoxelRenderPipeline());
 
 	app.Init();
 	RegisterEvents(es, &app);

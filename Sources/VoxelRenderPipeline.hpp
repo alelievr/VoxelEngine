@@ -3,12 +3,22 @@
 #include <iostream>
 #include <string>
 
-#include "RenderPipeline.hpp"
+#include "Core/Rendering/RenderPipeline.hpp"
 #include "Core/Shaders/ComputeShader.hpp"
 #include "Core/Vulkan/DescriptorSet.hpp"
+#include "Core/Hierarchy.hpp"
+#include "Core/Components/IndirectRenderer.hpp"
+#include "Core/Textures/Texture3D.hpp"
+#include "Core/Application.hpp"
 
 namespace LWGC
 {
+	struct VoxelVertexAttributes
+	{
+		glm::vec3		position;
+		uint32_t		atlasIndex;
+	};
+
 	class		VoxelRenderPipeline : public RenderPipeline
 	{
 		private:
@@ -21,12 +31,27 @@ namespace LWGC
 			CommandBufferPool	asyncComputePool;
 			VkCommandBuffer		asyncCommandBuffer;
 
-			ComputeShader		heavyComputeShader;
-			VkFence				heavyComputeFence;
+			ComputeShader		noiseComputeShader;
+			ComputeShader		isoSurfaceVoxelComputeShader;
+
+			Texture3D *			noiseVolume;
+
+			VkBuffer			vertexBuffer;
+			VkDeviceMemory		vertexMemory;
+
+			VkBuffer			drawBuffer;
+			VkDeviceMemory		drawMemory;
+
+			VkPipelineVertexInputStateCreateInfo	voxelVertexInputStateInfo;
+
+			Material *			unlitMinecraftMaterial;
+			Hierarchy *			hierarchy;
+			IndirectRenderer *	renderer;
 
 			DescriptorSet		asyncComputeSet;
 
 			void	SetupRenderPasses(void);
+			void	CreateVertexDescription(void);
 
 		protected:
 			void	Render(const std::vector< Camera * > & cameras, RenderContext * context) override;

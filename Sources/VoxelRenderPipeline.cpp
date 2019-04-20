@@ -1,93 +1,106 @@
 #include "Core/Vulkan/VulkanInstance.hpp"
-#include "Core/Rendering/VoxelRenderPipeline.hpp"
+#include "VoxelRenderPipeline.hpp"
 #include "Core/Vulkan/Vk.hpp"
 #include "Core/Rendering/RenderPipelineManager.hpp"
 #include "Core/Vulkan/ProfilingSample.hpp"
 
 using namespace LWGC;
 
-Texture2D * fractalTexture;
-
 void	VoxelRenderPipeline::Initialize(SwapChain * swapChain)
 {
 	RenderPipeline::Initialize(swapChain);
 
-	heavyComputeShader.LoadShader("Shaders/Compute/Heavy.hlsl");
-	heavyComputeFence = Vk::CreateFence(true);
+	hierarchy = Application::Get()->GetHierarchy();
+
+	noiseComputeShader.LoadShader("Noises/Spheres.hlsl");
+	isoSurfaceVoxelComputeShader.LoadShader("Meshing/Voxels.hlsl");
+
+	unlitMinecraftMaterial = Material::Create("Shading/Vertex.hlsl", "Shading/UnlitMinecraft.hlsl");
+
+	// We start with chunks of
+	noiseVolume = Texture3D::Create(128, 128, 128, VK_FORMAT_R8_UINT, VK_IMAGE_USAGE_STORAGE_BIT);
+
+	noiseComputeShader.SetTexture("noiseVolume", noiseVolume, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+	isoSurfaceVoxelComputeShader.SetTexture("noiseVolume", noiseVolume, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
+
+	CreateVertexDescription();
+
+	// Allocate the vertex buffer:
+	Vk::CreateBuffer(sizeof(VoxelVertexAttributes) * 128 * 128 * 64 * 4, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexMemory);
+	// Allocate one draw buffer:
+	Vk::CreateBuffer(sizeof(VkDrawIndirectCommand), VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, drawBuffer, drawMemory);
+
+	unlitMinecraftMaterial->SetVertexInputState(voxelVertexInputStateInfo);
+
+	renderer = new IndirectRenderer(unlitMinecraftMaterial);
+	hierarchy->AddGameObject(new GameObject(renderer));
+
+	renderer->SetDrawBuffer(drawBuffer);
 
 	// Allocate an async command queue (the device must have more than one queue to run the application)
 	instance->AllocateDeviceQueue(asyncComputeQueue, asyncComputeQueueIndex);
 	asyncComputePool.Initialize(asyncComputeQueue, asyncComputeQueueIndex);
 	asyncCommandBuffer = asyncComputePool.Allocate(VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 
-	fractalTexture = Texture2D::Create(2048, 2048, VK_FORMAT_R8G8B8A8_SNORM, VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
-	heavyComputeShader.SetTexture("fractal", fractalTexture, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
-	heavyComputeShader.SetBuffer(LWGCBinding::Frame, _uniformPerFrame.buffer, sizeof(LWGC_PerFrame), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+	// heavyComputeFence = Vk::CreateFence(true);
 
-	VkImageMemoryBarrier barrier = {};
-	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-    barrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
-    barrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
-    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.image = fractalTexture->GetImage();
+	// fractalTexture = Texture2D::Create(2048, 2048, VK_FORMAT_R8G8B8A8_SNORM, VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+	// noiseComputeShader.SetTexture("fractal", fractalTexture, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+	// noiseComputeShader.SetBuffer(LWGCBinding::Frame, _uniformPerFrame.buffer, sizeof(LWGC_PerFrame), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
 
-	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    barrier.subresourceRange.baseMipLevel = 0;
-    barrier.subresourceRange.levelCount = 1;
-    barrier.subresourceRange.baseArrayLayer = 0;
-    barrier.subresourceRange.layerCount = 1;
+	// VkImageMemoryBarrier barrier = {};
+	// barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    // barrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+    // barrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+    // barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    // barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    // barrier.image = fractalTexture->GetImage();
 
-	barrier.srcAccessMask = 0;
-	barrier.dstAccessMask = 0;
+	// barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    // barrier.subresourceRange.baseMipLevel = 0;
+    // barrier.subresourceRange.levelCount = 1;
+    // barrier.subresourceRange.baseArrayLayer = 0;
+    // barrier.subresourceRange.layerCount = 1;
 
-	heavyComputeShader.AddImageBarrier(barrier, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+	// barrier.srcAccessMask = 0;
+	// barrier.dstAccessMask = 0;
 
-	// By default the descriptor set is created with stage all flags
-	asyncComputeSet.AddBinding(0, fractalTexture, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
+	// noiseComputeShader.AddImageBarrier(barrier, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 
-	// Test
-	if (VulkanInstance::IsRayTracingEnabled())
-	{
-		VkBuffer aabbBuffer;
-		VkDeviceMemory mem;
-		Vk::CreateBuffer(10, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, aabbBuffer, mem);
-
-		VkGeometryAABBNV aabb = {};
-		aabb.sType = VK_STRUCTURE_TYPE_GEOMETRY_AABB_NV;
-		aabb.aabbData = aabbBuffer;
-		aabb.numAABBs = 1;
-		aabb.stride = 8;
-		aabb.offset = 0;
-
-		VkGeometryDataNV data = {};
-		data.aabbs = aabb;
-
-		VkGeometryNV	geom = {};
-		geom.sType = VK_STRUCTURE_TYPE_GEOMETRY_NV;
-		geom.geometryType = VK_GEOMETRY_TYPE_AABBS_NV;
-		geom.geometry = data;
-		geom.flags = VK_GEOMETRY_OPAQUE_BIT_NV;
-
-		VkAccelerationStructureInfoNV accelInfo = {};
-		accelInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_INFO_NV;
-		accelInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_NV;
-		accelInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_NV | VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_COMPACTION_BIT_NV;
-		accelInfo.instanceCount = 1;
-		accelInfo.geometryCount = 1;
-		accelInfo.pGeometries = &geom;
-
-		VkAccelerationStructureCreateInfoNV info = {};
-		info.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_NV;
-		info.compactedSize = 10;
-		info.info = accelInfo;
-
-		VkAccelerationStructureNV	structure;
-		vkCreateAccelerationStructureNV(device, &info, nullptr, &structure);
-	}
+	// // By default the descriptor set is created with stage all flags
+	// asyncComputeSet.AddBinding(0, fractalTexture, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
 
 	// Setup the render passes we uses:
 	SetupRenderPasses();
+}
+
+void	VoxelRenderPipeline::CreateVertexDescription(void)
+{
+	// Create indirect draw vertex description
+	// TODO: refactor by removing statics
+	static std::array< VkVertexInputBindingDescription, 1 > bindingDescription = {};
+	bindingDescription[0].binding = 0;
+	bindingDescription[0].stride = sizeof(VoxelVertexAttributes);
+	bindingDescription[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+	static std::array< VkVertexInputAttributeDescription, 2 > attributeDescriptions = {};
+
+	attributeDescriptions[0].binding = 0;
+	attributeDescriptions[0].location = 0;
+	attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+	attributeDescriptions[0].offset = offsetof(VoxelVertexAttributes, position);
+
+	attributeDescriptions[1].binding = 0;
+	attributeDescriptions[1].location = 1;
+	attributeDescriptions[1].format = VK_FORMAT_R32_SFLOAT;
+	attributeDescriptions[1].offset = offsetof(VoxelVertexAttributes, atlasIndex);
+
+	voxelVertexInputStateInfo = {};
+	voxelVertexInputStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+	voxelVertexInputStateInfo.vertexBindingDescriptionCount = bindingDescription.size();
+	voxelVertexInputStateInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+	voxelVertexInputStateInfo.pVertexBindingDescriptions = bindingDescription.data();
+	voxelVertexInputStateInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 }
 
 void	VoxelRenderPipeline::SetupRenderPasses()
@@ -132,20 +145,20 @@ void	VoxelRenderPipeline::Render(const std::vector< Camera * > & cameras, Render
 	VkCommandBuffer cmd = GetCurrentFrameCommandBuffer();
 
 	{
-		auto computeSample = ProfilingSample("Noise Dispatch");
+		auto computeSample = ProfilingSample("Noise Generation");
+
+		auto computeCmd = asyncComputePool.BeginSingle();
+		noiseComputeShader.Dispatch(cmd, 128, 128, 128);
+		asyncComputePool.EndSingle(computeCmd); // TODO: uneeded fence
+	}
+
+	{
+		auto computeSample = ProfilingSample("Geometry Generation");
 
 		auto asyncCmd = asyncComputePool.BeginSingle();
-		heavyComputeShader.Dispatch(cmd, 4096, 4096, 1);
+		noiseComputeShader.Dispatch(cmd, 128, 128, 128);
 		asyncComputePool.EndSingle(asyncCmd); // fence
 	}
-
-	// Process the compute shader before everything:
-	computePass.Begin(cmd, VK_NULL_HANDLE, "All Computes");
-	{
-		computePass.BindDescriptorSet(LWGCBinding::Frame, perFrameSet.GetDescriptorSet());
-		RenderPipeline::RecordAllComputeDispatches(computePass, context);
-	}
-	computePass.End();
 
 	forwardPass.Begin(cmd, GetCurrentFrameBuffer(), "All Cameras");
 	{
@@ -155,6 +168,10 @@ void	VoxelRenderPipeline::Render(const std::vector< Camera * > & cameras, Render
 		{
 			RenderPipelineManager::beginCameraRendering.Invoke(camera);
 			forwardPass.BindDescriptorSet(LWGCBinding::Camera, camera->GetDescriptorSet());
+
+			VkDeviceSize offsets[] = {0};
+			vkCmdBindVertexBuffers(cmd, 0, 1, &vertexBuffer, offsets);
+			renderer->RecordCommands(cmd);
 
 			RenderPipeline::RecordAllMeshRenderers(forwardPass, context);
 
