@@ -34,6 +34,7 @@ VoxelEngine::VoxelEngine(TerrainSettings & settings)
 	{
 		app.Update();
 	}
+	exit(0); // TODO: remove this
 }
 
 void	VoxelEngine::Load(TerrainSettings & settings)

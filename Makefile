@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2019/04/07 12:47:16 by alelievr         ###   ########.fr        #
+#    Updated: 2019/04/27 15:39:48 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -170,7 +170,7 @@ endif
 #################
 
 #	First target
-all: check_env $(NAME)
+all: $(LWGCLIB) check_env $(NAME)
 
 $(LWGCLIB):
 	@git submodule update --init
@@ -178,10 +178,10 @@ $(LWGCLIB):
 
 $(YAMLLIB):
 	@git submodule update --init
-	@cd Deps/yaml-cpp/ && cmake . && make -j
+	@cd Deps/yaml-cpp/ && cmake -DYAML_CPP_BUILD_TOOLS=OFF . && make -j
 
 #	Linking
-$(NAME): $(LWGCLIB) $(YAMLLIB) $(OBJ)
+$(NAME): $(YAMLLIB) $(OBJ)
 	@$(if $(findstring lft,$(LDLIBS)),$(call color_exec_t,$(CCLEAR),$(CCLEAR),\
 		make -j 4 -C libft))
 	@$(call color_exec,$(CLINK_T),$(CLINK),"Link of $(NAME):",\

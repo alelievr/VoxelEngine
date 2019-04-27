@@ -12,7 +12,7 @@ void	VoxelRenderPipeline::Initialize(SwapChain * swapChain)
 
 	hierarchy = Application::Get()->GetHierarchy();
 
-	noiseComputeShader.LoadShader("Noises/Spheres.glsl");
+	noiseComputeShader.LoadShader("Noises/Spheres.hlsl");
 	isoSurfaceVoxelComputeShader.LoadShader("Meshing/Voxels.hlsl");
 
 	unlitMinecraftMaterial = Material::Create("Shading/UnlitMinecraft.hlsl", "Shading/Vertex.hlsl");
@@ -26,9 +26,11 @@ void	VoxelRenderPipeline::Initialize(SwapChain * swapChain)
 	CreateVertexDescription();
 
 	// Allocate the vertex buffer:
-	Vk::CreateBuffer(sizeof(VoxelVertexAttributes) * 128 * 128 * 64 * 4, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexMemory);
+	Vk::CreateBuffer(sizeof(VoxelVertexAttributes) * 128 * 128 * 64 * 6, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexMemory);
 	// Allocate one draw buffer:
 	Vk::CreateBuffer(sizeof(VkDrawIndirectCommand), VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, drawBuffer, drawMemory);
+
+	isoSurfaceVoxelComputeShader.SetBuffer("vertices", vertexBuffer, sizeof(VoxelVertexAttributes) * 128 * 128 * 64 * 6, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
 
 	unlitMinecraftMaterial->SetVertexInputState(voxelVertexInputStateInfo);
 
@@ -156,9 +158,11 @@ void	VoxelRenderPipeline::Render(const std::vector< Camera * > & cameras, Render
 		auto computeSample = ProfilingSample("Geometry Generation");
 
 		auto asyncCmd = asyncComputePool.BeginSingle();
-		noiseComputeShader.Dispatch(cmd, 128, 128, 128);
+		isoSurfaceVoxelComputeShader.Dispatch(cmd, 8, 8, 8); // small dispatch to test
 		asyncComputePool.EndSingle(asyncCmd); // fence
 	}
+
+	// TODO: readback counter to have the number of generated vertices
 
 	forwardPass.Begin(cmd, GetCurrentFrameBuffer(), "All Cameras");
 	{
@@ -182,8 +186,6 @@ void	VoxelRenderPipeline::RecordIndirectDraws(RenderPass & pass, RenderContext *
 	auto renderQueue = context->GetRenderQueue();
 	VkCommandBuffer cmd = pass.GetCommandBuffer();
 
-	exit(0);
-
 	for (uint32_t i = 0; i < renderQueue->GetQueueCount(); i++)
 	{
 		const auto & renderers = renderQueue->GetRenderersForQueue(i);
@@ -200,7 +202,7 @@ void	VoxelRenderPipeline::RecordIndirectDraws(RenderPass & pass, RenderContext *
 			// TODO: optimize this when doing the renderqueues (sort materials and avoid pipeline switches)
 			material->BindPipeline(cmd);
 			material->BindProperties(cmd);
-			
+
 			VkDeviceSize offsets[] = {0};
 			vkCmdBindVertexBuffers(cmd, 0, 1, &vertexBuffer, offsets);
 
