@@ -52,6 +52,7 @@ namespace LWGC
 
 			void	SetupRenderPasses(void);
 			void	CreateVertexDescription(void);
+			void	RecordIndirectDraws(RenderPass & pass, RenderContext * context);
 
 		protected:
 			void	Render(const std::vector< Camera * > & cameras, RenderContext * context) override;

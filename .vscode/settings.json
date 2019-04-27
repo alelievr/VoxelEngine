@@ -57,6 +57,7 @@
 		"unordered_set": "cpp",
 		"utility": "cpp",
 		"vector": "cpp",
-		"fstream": "cpp"
+		"fstream": "cpp",
+		"*.tpp": "cpp"
 	}
 }

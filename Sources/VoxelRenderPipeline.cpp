@@ -149,7 +149,7 @@ void	VoxelRenderPipeline::Render(const std::vector< Camera * > & cameras, Render
 
 		auto computeCmd = asyncComputePool.BeginSingle();
 		noiseComputeShader.Dispatch(cmd, 128, 128, 128);
-		asyncComputePool.EndSingle(computeCmd); // TODO: uneeded fence
+		asyncComputePool.EndSingle(computeCmd); // TODO: unneded fence
 	}
 
 	{
@@ -169,14 +169,48 @@ void	VoxelRenderPipeline::Render(const std::vector< Camera * > & cameras, Render
 			RenderPipelineManager::beginCameraRendering.Invoke(camera);
 			forwardPass.BindDescriptorSet(LWGCBinding::Camera, camera->GetDescriptorSet());
 
-			VkDeviceSize offsets[] = {0};
-			vkCmdBindVertexBuffers(cmd, 0, 1, &vertexBuffer, offsets);
-			renderer->RecordCommands(cmd);
-
-			RenderPipeline::RecordAllMeshRenderers(forwardPass, context);
+			RecordIndirectDraws(forwardPass, context);
 
 			RenderPipelineManager::endCameraRendering.Invoke(camera);
 		}
 	}
 	forwardPass.End();
+}
+
+void	VoxelRenderPipeline::RecordIndirectDraws(RenderPass & pass, RenderContext * context)
+{
+	auto renderQueue = context->GetRenderQueue();
+	VkCommandBuffer cmd = pass.GetCommandBuffer();
+
+	exit(0);
+
+	for (uint32_t i = 0; i < renderQueue->GetQueueCount(); i++)
+	{
+		const auto & renderers = renderQueue->GetRenderersForQueue(i);
+
+		for (auto renderer : renderers)
+		{
+			// we only care about the terrain here
+			if (dynamic_cast< IndirectRenderer * >(renderer) == nullptr)
+				continue ;
+
+			auto material = renderer->GetMaterial();
+			pass.BindMaterial(material);
+
+			// TODO: optimize this when doing the renderqueues (sort materials and avoid pipeline switches)
+			material->BindPipeline(cmd);
+			material->BindProperties(cmd);
+			
+			VkDeviceSize offsets[] = {0};
+			vkCmdBindVertexBuffers(cmd, 0, 1, &vertexBuffer, offsets);
+
+			pass.BindDescriptorSet(LWGCBinding::Object, renderer->GetDescriptorSet());
+
+			// We bind / rebind everything we need for the folowing draws
+			pass.UpdateDescriptorBindings();
+
+			renderer->RecordCommands(cmd);
+		}
+	}
+
 }

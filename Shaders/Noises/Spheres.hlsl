@@ -4,7 +4,7 @@
 [vk::binding(0, 0)]
 ConstantBuffer< LWGC_PerFrame > frame;
 
-RWTexture3D< float > noiseVolume;
+RWTexture3D< float4 > noiseVolume;
 
 [numthreads(8, 8, 8)]
 void        main(ComputeInput i)

@@ -10,7 +10,7 @@ struct	VoxelVertexInput
 struct	VoxelFragmentInput
 {
 	[[vk::location(0)]] float4	positionWS : SV_Position;
-	[[vk::location(2)]] float2	uv : TEXCOORD0;
+	[[vk::location(1)]] float2	uv : TEXCOORD0;
 };
 
 #endif // VOXEL_STRUCTS
