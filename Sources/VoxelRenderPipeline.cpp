@@ -12,7 +12,7 @@ void	VoxelRenderPipeline::Initialize(SwapChain * swapChain)
 
 	hierarchy = Application::Get()->GetHierarchy();
 
-	noiseComputeShader.LoadShader("Noises/Spheres.hlsl");
+	noiseComputeShader.LoadShader("Noises/Spheres.glsl");
 	isoSurfaceVoxelComputeShader.LoadShader("Meshing/Voxels.hlsl");
 
 	unlitMinecraftMaterial = Material::Create("Shading/UnlitMinecraft.hlsl", "Shading/Vertex.hlsl");
