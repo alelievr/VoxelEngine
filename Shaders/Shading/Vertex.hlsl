@@ -10,7 +10,7 @@ VoxelFragmentInput main(VoxelVertexInput i)
 	uint atlasIndex = uint(i.atlasIndex);
 
 	// TODO: generate UVs from the texture atlas coordinates
-    o.uv = float2(0, 0);
+    o.uv = frac(i.position.xy);
 
 	return o;
 }

@@ -15,10 +15,10 @@ void	VoxelRenderPipeline::Initialize(SwapChain * swapChain)
 	noiseComputeShader.LoadShader("Noises/Spheres.hlsl");
 	isoSurfaceVoxelComputeShader.LoadShader("Meshing/Voxels.hlsl");
 
-	unlitMinecraftMaterial = Material::Create("Shading/Vertex.hlsl", "Shading/UnlitMinecraft.hlsl");
+	unlitMinecraftMaterial = Material::Create("Shading/UnlitMinecraft.hlsl", "Shading/Vertex.hlsl");
 
 	// We start with chunks of
-	noiseVolume = Texture3D::Create(128, 128, 128, VK_FORMAT_R8_UINT, VK_IMAGE_USAGE_STORAGE_BIT);
+	noiseVolume = Texture3D::Create(128, 128, 128, VK_FORMAT_R8_UINT, VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
 
 	noiseComputeShader.SetTexture("noiseVolume", noiseVolume, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
 	isoSurfaceVoxelComputeShader.SetTexture("noiseVolume", noiseVolume, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
