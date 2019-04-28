@@ -95,7 +95,7 @@ ifeq "$(OS)" "Windows_NT"
 endif
 ifeq "$(OS)" "Linux"
 	LDLIBS		+= -ldl -lpthread -lX11
-	DEBUGFLAGS	+= -fsanitize=memory -fsanitize-memory-use-after-dtor -fsanitize=thread
+	DEBUGFLAGS	+=
 endif
 ifeq "$(OS)" "Darwin"
 	FRAMEWORK	= OpenGL AppKit IOKit CoreVideo

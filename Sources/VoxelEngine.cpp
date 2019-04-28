@@ -45,10 +45,15 @@ void	VoxelEngine::Load(TerrainSettings & settings)
 
 void	VoxelEngine::RegisterEvents(EventSystem * es, Application * app)
 {
-	es->Get()->onKey.AddListener([&](KeyCode key, ButtonAction action, int)
+	es->Get()->onKey.AddListener([&](KeyCode key, ButtonAction action, int mods)
 		{
 			if (action == ButtonAction::Press && key == KeyCode::ESCAPE)
-				app->Quit();
+			{
+				if (mods == 2) // Control, TODO: LWGC defines for key mods
+					exit(0);
+				else
+					app->Quit();
+			}
 		}
 	);
 }

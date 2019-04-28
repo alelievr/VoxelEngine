@@ -15,13 +15,14 @@ void	VoxelRenderPipeline::Initialize(SwapChain * swapChain)
 	noiseComputeShader.LoadShader("Noises/Spheres.hlsl");
 	isoSurfaceVoxelComputeShader.LoadShader("Meshing/Voxels.hlsl");
 
-	unlitMinecraftMaterial = Material::Create("Shading/UnlitMinecraft.hlsl", "Shading/Vertex.hlsl");
+	unlitMinecraftMaterial = Material::Create("Shading/UnlitMinecraft.hlsl", "Shading/VoxelVertex.hlsl");
 
 	// We start with chunks of
-	noiseVolume = Texture3D::Create(128, 128, 128, VK_FORMAT_R8_UINT, VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+	noiseVolume = Texture3D::Create(128, 128, 128, VK_FORMAT_R8_SNORM, VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
 
 	noiseComputeShader.SetTexture("noiseVolume", noiseVolume, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
-	isoSurfaceVoxelComputeShader.SetTexture("noiseVolume", noiseVolume, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
+	// TODO: is it worth to make an image layout transition between these two calls ?
+	isoSurfaceVoxelComputeShader.SetTexture("noiseVolume", noiseVolume, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
 
 	CreateVertexDescription();
 
@@ -30,12 +31,26 @@ void	VoxelRenderPipeline::Initialize(SwapChain * swapChain)
 	// Allocate one draw buffer:
 	Vk::CreateBuffer(sizeof(VkDrawIndirectCommand), VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, drawBuffer, drawMemory);
 
+	VkBuffer vertexCounterBuffer;
+	VkDeviceMemory vertexCounterMemory;
+	Vk::CreateBuffer(sizeof(int), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexCounterBuffer, vertexCounterMemory);
+
 	isoSurfaceVoxelComputeShader.SetBuffer("vertices", vertexBuffer, sizeof(VoxelVertexAttributes) * 128 * 128 * 64 * 6, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+	isoSurfaceVoxelComputeShader.SetBuffer("vertices_count", vertexCounterBuffer, sizeof(int), VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
 
 	unlitMinecraftMaterial->SetVertexInputState(voxelVertexInputStateInfo);
 
 	renderer = new IndirectRenderer(unlitMinecraftMaterial);
 	hierarchy->AddGameObject(new GameObject(renderer));
+	
+	// Initialize draw command for a quad
+	VkDrawIndirectCommand defaultIndirectDrawCommand = {};
+	defaultIndirectDrawCommand.vertexCount = 6;
+	defaultIndirectDrawCommand.vertexCount = 1;
+	defaultIndirectDrawCommand.vertexCount = 0;
+	defaultIndirectDrawCommand.vertexCount = 0;
+
+	Vk::UploadToMemory(drawMemory, &defaultIndirectDrawCommand, sizeof(VkDrawIndirectCommand));
 
 	renderer->SetDrawBuffer(drawBuffer);
 
@@ -150,8 +165,8 @@ void	VoxelRenderPipeline::Render(const std::vector< Camera * > & cameras, Render
 		auto computeSample = ProfilingSample("Noise Generation");
 
 		auto computeCmd = asyncComputePool.BeginSingle();
-		noiseComputeShader.Dispatch(cmd, 128, 128, 128);
-		asyncComputePool.EndSingle(computeCmd); // TODO: unneded fence
+		noiseComputeShader.Dispatch(cmd, 8, 8, 8);
+		asyncComputePool.EndSingle(computeCmd); // TODO: unneeded fence
 	}
 
 	{

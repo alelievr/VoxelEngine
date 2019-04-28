@@ -26,12 +26,14 @@ FragmentOutput main(VoxelFragmentInput i)
 {
 	FragmentOutput	o;
 
-	float4 sizeOffset = sizeOffsets[step(frame.time.y, 0.5)].sizeOffset;
+	o.color = float4(1, 1, 0, 1);
+
+	// float4 sizeOffset = sizeOffsets[step(frame.time.y, 0.5)].sizeOffset;
     // sizeOffset.zw += atlas[0].size.zw * 0.5;
 
 	// o.color = float4(1, 1, 0, 1);
-	float2 atlasUVs = UvToAtlas(i.uv, sizeOffset);
-	o.color = float4(albedoMap.SampleLevel(trilinearClamp, atlasUVs, 0).rgb, 0.5);
+	// float2 atlasUVs = UvToAtlas(i.uv, sizeOffset);
+	// o.color = float4(albedoMap.SampleLevel(trilinearClamp, atlasUVs, 0).rgb, 0.5);
 
 	return o;
 }

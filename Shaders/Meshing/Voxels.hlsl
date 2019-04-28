@@ -2,8 +2,9 @@
 #include "Common/UniformStructs.hlsl"
 #include "Common/VoxelStructs.hlsl"
 
-[vk::binding(0, 1)]
-ConstantBuffer< LWGC_PerFrame > frame;
+// TODO: something to manage auto-bindings from ComputeShader class
+// [vk::binding(0, 1)]
+// ConstantBuffer< LWGC_PerFrame > frame;
 
 [vk::binding(0, 2)]
 uniform Texture3D< half > noiseVolume;

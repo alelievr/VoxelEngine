@@ -58,6 +58,13 @@
 		"utility": "cpp",
 		"vector": "cpp",
 		"fstream": "cpp",
-		"*.tpp": "cpp"
+		"*.tpp": "cpp",
+		"*.tcc": "cpp",
+		"clocale": "cpp",
+		"list": "cpp",
+		"sstream": "cpp",
+		"cinttypes": "cpp",
+		"deque": "cpp",
+		"optional": "cpp"
 	}
 }

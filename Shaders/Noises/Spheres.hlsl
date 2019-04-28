@@ -1,8 +1,9 @@
 #include "Common/InputCompute.hlsl"
 #include "Common/UniformStructs.hlsl"
 
-[vk::binding(0, 0)]
-ConstantBuffer< LWGC_PerFrame > frame;
+// TODO: something to manage auto-bindings from ComputeShader class
+// [vk::binding(0, 0)]
+// ConstantBuffer< LWGC_PerFrame > frame;
 
 [vk::binding(0, 1)]
 RWTexture3D< half > noiseVolume;
