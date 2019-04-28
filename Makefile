@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2019/04/27 15:39:48 by alelievr         ###   ########.fr        #
+#    Updated: 2019/04/28 14:00:41 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -178,7 +178,7 @@ $(LWGCLIB):
 
 $(YAMLLIB):
 	@git submodule update --init
-	@cd Deps/yaml-cpp/ && cmake -DYAML_CPP_BUILD_TOOLS=OFF . && make -j
+	@cd Deps/yaml-cpp/ && cmake -DYAML_CPP_BUILD_TOOLS=OFF -DYAML_CPP_BUILD_TESTS=OFF . && make -j
 
 #	Linking
 $(NAME): $(YAMLLIB) $(OBJ)

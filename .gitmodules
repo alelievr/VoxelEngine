@@ -1,6 +1,7 @@
-[submodule "Deps/LWGC"]
-	path = Deps/LWGC
-	url = https://github.com/alelievr/LightweightGraphicCore
 [submodule "Deps/yaml-cpp"]
 	path = Deps/yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp
+[submodule "Deps/LWGC"]
+	path = Deps/LWGC
+	url = https://github.com/alelievr/LightweightGraphicCore
+	branch = master
