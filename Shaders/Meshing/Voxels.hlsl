@@ -13,6 +13,13 @@ uniform Texture3D< half > noiseVolume;
 AppendStructuredBuffer< VoxelVertex > vertices;
 // the field vertices_counter is bound to the index 0
 
+struct VertexCountReadback
+{
+	uint vertexCount;
+};
+
+RWStructuredBuffer< VertexCountReadback >	vertexCount;
+
 [numthreads(8, 8, 8)]
 void        main(ComputeInput i)
 {
@@ -38,8 +45,11 @@ void        main(ComputeInput i)
 		0
 	};
 
+	// InterlockedAdd(vertexCount[0].vertexCount, 1);
+	vertexCount[0].vertexCount++;
+
 	// Append a quad to test
-	vertices.Append(v1);
+	// vertices.Append(v1);
 	// vertices.Append(v2);
 	// vertices.Append(v3);
 	// vertices.Append(v3);

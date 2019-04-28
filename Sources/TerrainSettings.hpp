@@ -43,7 +43,7 @@ class		TerrainSettings
 
 		TerrainSettings &	operator=(TerrainSettings const & src) = delete;
 
-		static TerrainSettings	Load(const std::string & fileName) noexcept;
+		static bool	Load(const std::string & fileName, TerrainSettings & settings) noexcept;
 
 		bool	Save(const std::string & fileName) noexcept;
 

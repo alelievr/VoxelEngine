@@ -17,7 +17,10 @@ int		main(int ac, char **av)
 	else
 		configFile = std::string(av[1]);
 
-	TerrainSettings settings = TerrainSettings::Load(configFile);
+	TerrainSettings settings;
+
+	if (!TerrainSettings::Load(configFile, settings))
+		std::cout << "Invalid config file: " << configFile << std::endl;
 
 	VoxelEngine engine(settings);
 }

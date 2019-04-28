@@ -20,6 +20,7 @@ SRC			=	Main.cpp				\
 				TerrainSettings.cpp		\
 				VoxelEngine.cpp			\
 				VoxelRenderPipeline.cpp	\
+				GUIManager.cpp			\
 
 #	Objects
 OBJDIR		=	obj

@@ -2,7 +2,6 @@
 
 TerrainSettings::TerrainSettings(void)
 {
-	std::cout << "Default constructor of TerrainSettings called" << std::endl;
 	this->_chunkSize = 16;
 	this->_seed = 0;
 	// this->_noiseTree = ;
@@ -10,13 +9,12 @@ TerrainSettings::TerrainSettings(void)
 
 TerrainSettings::~TerrainSettings(void)
 {
-	std::cout << "Destructor of TerrainSettings called" << std::endl;
 }
 
-TerrainSettings		TerrainSettings::Load(const std::string & fileName) noexcept
+bool		TerrainSettings::Load(const std::string & fileName, TerrainSettings & settings) noexcept
 {
 	std::cout << "Load Terrain settings: TODO" << std::endl;
-	return TerrainSettings{};
+	return true;
 }
 
 bool		TerrainSettings::Save(const std::string & fileName) noexcept

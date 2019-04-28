@@ -1,5 +1,6 @@
 #include "VoxelEngine.hpp"
 #include "VoxelRenderPipeline.hpp"
+#include "GUIManager.hpp"
 
 VoxelEngine::VoxelEngine(TerrainSettings & settings)
 {
@@ -12,8 +13,6 @@ VoxelEngine::VoxelEngine(TerrainSettings & settings)
 	ShaderSource::AddIncludePath("Deps/LWGC/Shaders/");
 	ShaderSource::AddIncludePath("Shaders/");
 
-	Load(settings);
-
 	RenderPipelineManager::SetCurrentRenderPipeline(new VoxelRenderPipeline());
 
 	app.Init();
@@ -21,6 +20,10 @@ VoxelEngine::VoxelEngine(TerrainSettings & settings)
 
 	// We must Open the window before doing anything related to vulkan
 	app.Open("Vox", 1920, 1200, WindowFlag::Resizable | WindowFlag::Decorated | WindowFlag::Focused);
+
+	GUIManager::Initialize();
+
+	Load(settings);
 
 	auto cam = new GameObject(new Camera());
 	cam->GetTransform()->SetPosition(glm::vec3(0, 0, -5));
@@ -40,7 +43,9 @@ VoxelEngine::VoxelEngine(TerrainSettings & settings)
 void	VoxelEngine::Load(TerrainSettings & settings)
 {
 	(void)settings;
-	std::cout << "Load setting file: TODO" << std::endl;
+	std::cout << "Load setting: TODO" << std::endl;
+
+	GUIManager::LoadSettings(&settings);
 }
 
 void	VoxelEngine::RegisterEvents(EventSystem * es, Application * app)

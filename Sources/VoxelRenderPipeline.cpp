@@ -20,6 +20,8 @@ void	VoxelRenderPipeline::Initialize(SwapChain * swapChain)
 	// We start with chunks of
 	noiseVolume = Texture3D::Create(128, 128, 128, VK_FORMAT_R8_SNORM, VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
 
+	noiseVolume->ChangeLayout(VK_IMAGE_LAYOUT_GENERAL);
+
 	noiseComputeShader.SetTexture("noiseVolume", noiseVolume, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
 	// TODO: is it worth to make an image layout transition between these two calls ?
 	isoSurfaceVoxelComputeShader.SetTexture("noiseVolume", noiseVolume, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
@@ -42,7 +44,7 @@ void	VoxelRenderPipeline::Initialize(SwapChain * swapChain)
 
 	renderer = new IndirectRenderer(unlitMinecraftMaterial);
 	hierarchy->AddGameObject(new GameObject(renderer));
-	
+
 	// Initialize draw command for a quad
 	VkDrawIndirectCommand defaultIndirectDrawCommand = {};
 	defaultIndirectDrawCommand.vertexCount = 6;
@@ -162,7 +164,7 @@ void	VoxelRenderPipeline::Render(const std::vector< Camera * > & cameras, Render
 	VkCommandBuffer cmd = GetCurrentFrameCommandBuffer();
 
 	{
-		auto computeSample = ProfilingSample("Noise Generation");
+		const auto & computeSample = ProfilingSample("Noise Generation");
 
 		auto computeCmd = asyncComputePool.BeginSingle();
 		noiseComputeShader.Dispatch(cmd, 8, 8, 8);
@@ -170,7 +172,7 @@ void	VoxelRenderPipeline::Render(const std::vector< Camera * > & cameras, Render
 	}
 
 	{
-		auto computeSample = ProfilingSample("Geometry Generation");
+		const auto & computeSample = ProfilingSample("Geometry Generation");
 
 		auto asyncCmd = asyncComputePool.BeginSingle();
 		isoSurfaceVoxelComputeShader.Dispatch(cmd, 8, 8, 8); // small dispatch to test
