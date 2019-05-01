@@ -3,6 +3,7 @@
 #include "Core/Vulkan/Vk.hpp"
 #include "Core/Rendering/RenderPipelineManager.hpp"
 #include "Core/Vulkan/ProfilingSample.hpp"
+#include "LWGC.hpp"
 
 using namespace LWGC;
 
@@ -38,7 +39,13 @@ void	VoxelRenderPipeline::Initialize(SwapChain * swapChain)
 	Vk::CreateBuffer(sizeof(int), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexCounterBuffer, vertexCounterMemory);
 
 	isoSurfaceVoxelComputeShader.SetBuffer("vertices", vertexBuffer, sizeof(VoxelVertexAttributes) * 128 * 128 * 64 * 6, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
-	isoSurfaceVoxelComputeShader.SetBuffer("vertices_count", vertexCounterBuffer, sizeof(int), VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+	isoSurfaceVoxelComputeShader.SetBuffer("vertexCount", vertexCounterBuffer, sizeof(int), VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+
+	// Debug cube
+	auto debugMaterial = Material::Create(BuiltinShaders::ColorDirection, BuiltinShaders::DefaultVertex);
+	auto cube = new GameObject(new MeshRenderer(PrimitiveType::Cube, debugMaterial));
+	cube->GetTransform()->SetPosition(glm::vec3(0, 0, 5));
+	hierarchy->AddGameObject(cube);
 
 	unlitMinecraftMaterial->SetVertexInputState(voxelVertexInputStateInfo);
 
@@ -47,10 +54,10 @@ void	VoxelRenderPipeline::Initialize(SwapChain * swapChain)
 
 	// Initialize draw command for a quad
 	VkDrawIndirectCommand defaultIndirectDrawCommand = {};
-	defaultIndirectDrawCommand.vertexCount = 6;
-	defaultIndirectDrawCommand.vertexCount = 1;
-	defaultIndirectDrawCommand.vertexCount = 0;
-	defaultIndirectDrawCommand.vertexCount = 0;
+	defaultIndirectDrawCommand.vertexCount = 6 * 100;
+	defaultIndirectDrawCommand.instanceCount = 1;
+	defaultIndirectDrawCommand.firstVertex = 0;
+	defaultIndirectDrawCommand.firstInstance = 0;
 
 	Vk::UploadToMemory(drawMemory, &defaultIndirectDrawCommand, sizeof(VkDrawIndirectCommand));
 
@@ -151,7 +158,7 @@ void	VoxelRenderPipeline::SetupRenderPasses()
 
 	forwardPass.AddDependency(dependency);
 
-	forwardPass.SetClearColor(Color::Black, 1.0f, 0.0f);
+	forwardPass.SetClearColor(Color::Black, 0.0f, 0.0f);
 
 	forwardPass.Create();
 
@@ -167,7 +174,7 @@ void	VoxelRenderPipeline::Render(const std::vector< Camera * > & cameras, Render
 		const auto & computeSample = ProfilingSample("Noise Generation");
 
 		auto computeCmd = asyncComputePool.BeginSingle();
-		noiseComputeShader.Dispatch(cmd, 8, 8, 8);
+		noiseComputeShader.Dispatch(cmd, 128, 128, 128);
 		asyncComputePool.EndSingle(computeCmd); // TODO: unneeded fence
 	}
 
@@ -230,6 +237,9 @@ void	VoxelRenderPipeline::RecordIndirectDraws(RenderPass & pass, RenderContext *
 
 			renderer->RecordCommands(cmd);
 		}
+
+		// Optional: record all mesh renderers so we can see gizmos and debug objects 
+		RenderPipeline::RecordAllMeshRenderers(forwardPass, context);
 	}
 
 }
