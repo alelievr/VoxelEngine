@@ -31,13 +31,10 @@ float simpleNoise(float2 p)
 [numthreads(8, 8, 8)]
 void        main(ComputeInput i)
 {
-	float3 uv = i.dispatchThreadId.xyz / float3(32.0) - 1.0;
+	float3 uv = i.dispatchThreadId.xyz / float3(64.0);
 
     // Basic domain repetition
-    uv = frac(uv);
+    uv = frac(uv) - 0.5;
 
-	for (int i = 0; i < 20; i++)
-		uv += simpleNoise(uv);
-
-	noiseVolume[i.dispatchThreadId.xyz] = length(uv);
+	noiseVolume[i.dispatchThreadId.xyz] = length(uv) * 2 - 0.5;
 }

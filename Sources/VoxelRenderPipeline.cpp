@@ -36,7 +36,7 @@ void	VoxelRenderPipeline::Initialize(SwapChain * swapChain)
 
 	VkBuffer vertexCounterBuffer;
 	VkDeviceMemory vertexCounterMemory;
-	Vk::CreateBuffer(sizeof(int), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexCounterBuffer, vertexCounterMemory);
+	Vk::CreateBuffer(sizeof(int), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexCounterBuffer, vertexCounterMemory);
 
 	isoSurfaceVoxelComputeShader.SetBuffer("vertices", vertexBuffer, sizeof(VoxelVertexAttributes) * 128 * 128 * 64 * 6, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
 	isoSurfaceVoxelComputeShader.SetBuffer("vertexCount", vertexCounterBuffer, sizeof(int), VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
