@@ -13,40 +13,51 @@ uniform Texture3D< half > noiseVolume;
 RWStructuredBuffer< VoxelVertex > vertices;
 // the field vertices_counter is bound to the index 0
 
-struct VertexCountReadback
+struct DrawIndirectCommand
 {
 	uint vertexCount;
+	uint instanceCount;
+	uint firstVertex;
+	uint firstInstance;
 };
 
-RWStructuredBuffer< VertexCountReadback >	vertexCount;
+[vk::binding(0, 4)]
+RWStructuredBuffer< DrawIndirectCommand >	drawCommands;
+
+[vk::push_constant] cbuffer currentData { int targetDrawIndex; int al; };
 
 [numthreads(8, 8, 8)]
 void        main(ComputeInput i)
 {
 	float v = noiseVolume[i.dispatchThreadId];
 
+	// if (v > 1.0)
+		// return ;
+	
+	float3 offset = i.dispatchThreadId.xyz * 1.1;
+
 	VoxelVertex v1 = {
-		float3(0, 0, 0),
+		float3(0, 0, 0) + offset,
 		0
 	};
 
 	VoxelVertex v2 = {
-		float3(1, 0, 0),
+		float3(1, 0, 0) + offset,
 		0
 	};
 
 	VoxelVertex v3 = {
-		float3(1, 1, 0),
+		float3(1, 1, 0) + offset,
 		0
 	};
 
 	VoxelVertex v4 = {
-		float3(0, 1, 0),
+		float3(0, 1, 0) + offset,
 		0
 	};
 
 	uint index;
-	InterlockedAdd(vertexCount[0].vertexCount, 1, index);
+	InterlockedAdd(drawCommands[targetDrawIndex + al].vertexCount, 1, index);
 	index *= 6;
 
 	// Append a quad to test

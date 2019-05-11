@@ -39,9 +39,6 @@ namespace LWGC
 			VkBuffer			vertexBuffer;
 			VkDeviceMemory		vertexMemory;
 
-			VkBuffer			drawBuffer;
-			VkDeviceMemory		drawMemory;
-
 			VkPipelineVertexInputStateCreateInfo	voxelVertexInputStateInfo;
 
 			Material *			unlitMinecraftMaterial;

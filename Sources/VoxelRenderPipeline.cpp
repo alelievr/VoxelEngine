@@ -31,15 +31,8 @@ void	VoxelRenderPipeline::Initialize(SwapChain * swapChain)
 
 	// Allocate the vertex buffer:
 	Vk::CreateBuffer(sizeof(VoxelVertexAttributes) * 128 * 128 * 64 * 6, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexMemory);
-	// Allocate one draw buffer:
-	Vk::CreateBuffer(sizeof(VkDrawIndirectCommand), VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, drawBuffer, drawMemory);
-
-	VkBuffer vertexCounterBuffer;
-	VkDeviceMemory vertexCounterMemory;
-	Vk::CreateBuffer(sizeof(int), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexCounterBuffer, vertexCounterMemory);
 
 	isoSurfaceVoxelComputeShader.SetBuffer("vertices", vertexBuffer, sizeof(VoxelVertexAttributes) * 128 * 128 * 64 * 6, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
-	isoSurfaceVoxelComputeShader.SetBuffer("vertexCount", vertexCounterBuffer, sizeof(int), VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
 
 	// Debug cube
 	auto debugMaterial = Material::Create(BuiltinShaders::ColorDirection, BuiltinShaders::DefaultVertex);
@@ -52,16 +45,7 @@ void	VoxelRenderPipeline::Initialize(SwapChain * swapChain)
 	renderer = new IndirectRenderer(unlitMinecraftMaterial);
 	hierarchy->AddGameObject(new GameObject(renderer));
 
-	// Initialize draw command for a quad
-	VkDrawIndirectCommand defaultIndirectDrawCommand = {};
-	defaultIndirectDrawCommand.vertexCount = 6 * 100;
-	defaultIndirectDrawCommand.instanceCount = 1;
-	defaultIndirectDrawCommand.firstVertex = 0;
-	defaultIndirectDrawCommand.firstInstance = 0;
-
-	Vk::UploadToMemory(drawMemory, &defaultIndirectDrawCommand, sizeof(VkDrawIndirectCommand));
-
-	renderer->SetDrawBuffer(drawBuffer);
+	renderer->AllocateDrawBuffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, swapChain->GetImageCount(), 1);
 
 	// Allocate an async command queue (the device must have more than one queue to run the application)
 	instance->AllocateDeviceQueue(asyncComputeQueue, asyncComputeQueueIndex);
@@ -162,7 +146,7 @@ void	VoxelRenderPipeline::SetupRenderPasses()
 
 	forwardPass.Create();
 
-	// Must be the last renderpass before the final blit (which contains the framebuffer attachements)
+	// Must be the last renderpass before the final blit (which contains the framebuffer attachments)
 	SetLastRenderPass(forwardPass);
 }
 
@@ -182,6 +166,13 @@ void	VoxelRenderPipeline::Render(const std::vector< Camera * > & cameras, Render
 		const auto & computeSample = ProfilingSample("Geometry Generation");
 
 		auto asyncCmd = asyncComputePool.BeginSingle();
+
+		// Retrieve the buffer offset to write the draw arguments from the GPU iso-surface algorithm
+		size_t bufferIndex;
+		VkBuffer drawBuffer = renderer->GetDrawBuffer(currentFrame, bufferIndex);
+		isoSurfaceVoxelComputeShader.SetBuffer("drawCommands", drawBuffer, renderer->GetDrawBufferSize(), VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+		// Update the draw index via push-constants:
+		isoSurfaceVoxelComputeShader.SetPushConstant(cmd, "targetDrawIndex", &bufferIndex);
 		isoSurfaceVoxelComputeShader.Dispatch(cmd, 8, 8, 8); // small dispatch to test
 		asyncComputePool.EndSingle(asyncCmd); // fence
 	}
@@ -217,7 +208,8 @@ void	VoxelRenderPipeline::RecordIndirectDraws(RenderPass & pass, RenderContext *
 		for (auto renderer : renderers)
 		{
 			// we only care about the terrain here
-			if (dynamic_cast< IndirectRenderer * >(renderer) == nullptr)
+			auto indirectRenderer = dynamic_cast< IndirectRenderer * >(renderer);
+			if (indirectRenderer == nullptr)
 				continue ;
 
 			auto material = renderer->GetMaterial();
@@ -230,12 +222,17 @@ void	VoxelRenderPipeline::RecordIndirectDraws(RenderPass & pass, RenderContext *
 			VkDeviceSize offsets[] = {0};
 			vkCmdBindVertexBuffers(cmd, 0, 1, &vertexBuffer, offsets);
 
+			// We only have one buffer currently so we don't need that
+			// indirectRenderer->SetOffset(currentFrame * sizeof(VkDrawIndirectCommand));
+
+			// indirectRenderer->SetDrawBufferValues(currentFrame, 100, 1, 0, 0);
+
 			pass.BindDescriptorSet(LWGCBinding::Object, renderer->GetDescriptorSet());
 
 			// We bind / rebind everything we need for the folowing draws
 			pass.UpdateDescriptorBindings();
 
-			renderer->RecordCommands(cmd);
+			indirectRenderer->RecordDrawCommand(cmd, currentFrame);
 		}
 
 		// Optional: record all mesh renderers so we can see gizmos and debug objects 
