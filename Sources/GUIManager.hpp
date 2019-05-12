@@ -22,5 +22,6 @@ class		GUIManager
 
 		static void		Initialize(void) noexcept;
 		static void		LoadSettings(TerrainSettings * settings) noexcept;
-		static void		NoiseSettingsPanel();
+		static void		DockManager(void) noexcept;
+		static void		DrawTerrainSettingsGUI(void) noexcept;
 };

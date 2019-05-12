@@ -66,6 +66,8 @@
 		"cinttypes": "cpp",
 		"deque": "cpp",
 		"optional": "cpp",
-		"iomanip": "cpp"
+		"iomanip": "cpp",
+		"set": "cpp",
+		"stack": "cpp"
 	}
 }

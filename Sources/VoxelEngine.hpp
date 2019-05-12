@@ -8,6 +8,8 @@
 
 using namespace LWGC;
 
+const std::string defaultConfigFile = "config/default.yml";
+
 class		VoxelEngine
 {
 	private:

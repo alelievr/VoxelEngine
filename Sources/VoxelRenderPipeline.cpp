@@ -153,9 +153,9 @@ void	VoxelRenderPipeline::SetupRenderPasses()
 void	VoxelRenderPipeline::Render(const std::vector< Camera * > & cameras, RenderContext * context)
 {
 	VkCommandBuffer cmd = GetCurrentFrameCommandBuffer();
-	
+
 	// First, before the generation, we reset the draw buffer
-	renderer->SetDrawBufferValues(currentFrame, 0, 1, 0, 0);
+	renderer->SetDrawBufferValues(0, 0, 1, 0, 0);
 
 	{
 		const auto & computeSample = ProfilingSample("Noise Generation");
@@ -172,7 +172,7 @@ void	VoxelRenderPipeline::Render(const std::vector< Camera * > & cameras, Render
 
 		// Retrieve the buffer offset to write the draw arguments from the GPU iso-surface algorithm
 		size_t bufferIndex;
-		VkBuffer drawBuffer = renderer->GetDrawBuffer(currentFrame, bufferIndex);
+		VkBuffer drawBuffer = renderer->GetDrawBuffer(0, bufferIndex);
 		// Reset the vertex number before the generation:
 		// TODO: rename this
 		isoSurfaceVoxelComputeShader.SetBuffer("drawCommands", drawBuffer, renderer->GetDrawBufferSize(), VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
@@ -228,19 +228,19 @@ void	VoxelRenderPipeline::RecordIndirectDraws(RenderPass & pass, RenderContext *
 			vkCmdBindVertexBuffers(cmd, 0, 1, &vertexBuffer, offsets);
 
 			// We only have one buffer currently so we don't need that
-			// indirectRenderer->SetOffset(currentFrame * sizeof(VkDrawIndirectCommand));
+			// indirectRenderer->SetOffset(0 * sizeof(VkDrawIndirectCommand));
 
-			// indirectRenderer->SetDrawBufferValues(currentFrame, 512, 1, 0, 0);
+			// indirectRenderer->SetDrawBufferValues(0, 512, 1, 0, 0);
 
 			pass.BindDescriptorSet(LWGCBinding::Object, renderer->GetDescriptorSet());
 
 			// We bind / rebind everything we need for the folowing draws
 			pass.UpdateDescriptorBindings();
 
-			indirectRenderer->RecordDrawCommand(cmd, currentFrame);
+			indirectRenderer->RecordDrawCommand(cmd, 0);
 		}
 	}
 
-	// Optional: record all mesh renderers so we can see gizmos and debug objects 
+	// Optional: record all mesh renderers so we can see gizmos and debug objects
 	RenderPipeline::RecordAllMeshRenderers(forwardPass, context);
 }

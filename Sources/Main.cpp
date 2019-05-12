@@ -6,8 +6,6 @@
 
 using namespace LWGC;
 
-const std::string defaultConfigFile = "config/default.yml";
-
 int		main(int ac, char **av)
 {
 	std::string configFile;

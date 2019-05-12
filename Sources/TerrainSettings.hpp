@@ -9,34 +9,47 @@
 class NoiseSettings // TODO: parent class ?
 {
 	private:
-		int		_octaves;
-		float	_turbulance;
 		bool	_dirty;
 
 		void	SetDirty(void) { _dirty = true; }
 
 	public:
+		int				octaves;
+		float			turbulance;
+		std::string		name;
+
 		NoiseSettings(void) : _dirty(false) {}
 		~NoiseSettings() = default;
+		bool		IsDrity(void) const noexcept { return _dirty; }
 
-		int		GetOctaves(void) const noexcept { return _octaves; }
-		float	GetTurbulance(void) const noexcept { return _turbulance; }
-		void	SetOctaves(int octaves) noexcept { _octaves = octaves; SetDirty(); }
-		void	SetTurbulance(float turbulance) noexcept { _turbulance = turbulance; SetDirty(); }
-		bool	IsDrity(void) const noexcept { return _dirty; }
+		static void Load(const YAML::Node & node, NoiseSettings & settings)
+		{
+			settings.octaves = node["octaves"].as< int >();
+			settings.turbulance = node["turbulance"].as< float >();
+			settings.name = node["name"].as< std::string >();
+		}
+
+		// Serialization operators
+		friend YAML::Emitter & operator<<(YAML::Emitter & out, const NoiseSettings & noiseSettings)
+		{
+			out << YAML::Key << "octaves" << YAML::Value << noiseSettings.octaves;
+			out << YAML::Key << "turbulance" << YAML::Value << noiseSettings.turbulance;
+			out << YAML::Key << "name" << YAML::Value << noiseSettings.name;
+
+			return out;
+		}
 };
-
-// TODO: << and >> operator for yaml lib
 
 class		TerrainSettings
 {
 	private:
-		size_t	_chunkSize;
-		int	_seed;
-		std::vector< NoiseSettings >	_noiseSettings;
-		// NoiseTreeCSG	_noiseTree; // TODO
 
 	public:
+		std::vector< NoiseSettings >	noiseSettings;
+		size_t							chunkSize;
+		int								globalSeed;
+		// NoiseTreeCSG	_noiseTree; // TODO
+
 		TerrainSettings(void);
 		TerrainSettings(const TerrainSettings &) = delete;
 		virtual ~TerrainSettings(void);
@@ -46,18 +59,6 @@ class		TerrainSettings
 		static bool	Load(const std::string & fileName, TerrainSettings & settings) noexcept;
 
 		bool	Save(const std::string & fileName) noexcept;
-
-		size_t	GetChunkSize(void) const;
-		void	SetChunkSize(size_t tmp);
-
-		int		GetSeed(void) const;
-		void	SetSeed(int tmp);
-
-		std::vector< NoiseSettings >	GetNoiseSettings(void) const noexcept;
-		void	SetNoiseSettings(std::vector< NoiseSettings > tmp) noexcept;
-
-		// NoiseTreeCSG	GetNoiseTree(void) const;
-		// void	SetNoiseTree(NoiseTreeCSG tmp);
 };
 
 std::ostream &	operator<<(std::ostream & o, TerrainSettings const & r);

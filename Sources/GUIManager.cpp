@@ -12,12 +12,12 @@ void		GUIManager::Initialize(void) noexcept
 	parent = new GameObject();
 
 	// Add all required GUI panels:
-	parent->AddComponent(new ImGUIPanel(NoiseSettingsPanel));
+	parent->AddComponent(new ImGUIPanel(DockManager));
 
 	app->GetHierarchy()->AddGameObject(parent);
 }
 
-void		GUIManager::NoiseSettingsPanel()
+void		GUIManager::DockManager(void) noexcept
 {
 	bool opened = true;
 
@@ -34,19 +34,29 @@ void		GUIManager::NoiseSettingsPanel()
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-	ImGui::Begin("DockSpace Demo", &opened, window_flags);
+	ImGui::Begin("DockSpace", &opened, window_flags);
 	ImGui::PopStyleVar(3);
 
 	ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
 	ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
 	ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 
-	ImGui::Begin("Voxel Terrain Settings", &opened, ImGuiDockNodeFlags_PassthruCentralNode);
-
-	ImGui::TextColored(ImVec4{1, 0, 1, 1}, "");
+	DrawTerrainSettingsGUI();
 
 	ImGui::End();
+}
 
+void		GUIManager::DrawTerrainSettingsGUI(void) noexcept
+{
+	bool opened = true; // TODO
+
+	ImGui::Begin("Voxel Terrain Settings", &opened, ImGuiDockNodeFlags_PassthruCentralNode);
+	{
+		ImGui::TextColored(ImVec4{1, 0, 1, 1}, "AAAA");
+		ImGui::InputInt("Global Seed", &currentSettings->globalSeed, 1, 10);
+
+		// TODO: save button
+	}
 	ImGui::End();
 }
 

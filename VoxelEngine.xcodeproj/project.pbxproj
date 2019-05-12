@@ -13,7 +13,7 @@
 		B17DDAAB227646C000AF877E /* Shading in CopyFiles */ = {isa = PBXBuildFile; fileRef = B17DDAA7227646BE00AF877E /* Shading */; };
 		B17DDAAC227646C000AF877E /* Noises in CopyFiles */ = {isa = PBXBuildFile; fileRef = B17DDAA8227646BE00AF877E /* Noises */; };
 		B17DDAAD227646C000AF877E /* Common in CopyFiles */ = {isa = PBXBuildFile; fileRef = B17DDAA9227646BF00AF877E /* Common */; };
-		B17DDAAE2276478300AF877E /* libspirv-cross.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B17DCB2E2276469600AF877E /* libspirv-cross.a */; };
+		B1874BA42288315200851674 /* libspirv-cross.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B1BAF00422763E9A003E4B98 /* libspirv-cross.a */; };
 		B1BAEFF622763D99003E4B98 /* GUIManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B1BAEFEB22763D98003E4B98 /* GUIManager.cpp */; };
 		B1BAEFF722763D99003E4B98 /* Main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B1BAEFED22763D98003E4B98 /* Main.cpp */; };
 		B1BAEFF822763D99003E4B98 /* TerrainSettings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B1BAEFEE22763D98003E4B98 /* TerrainSettings.cpp */; };
@@ -10358,7 +10358,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B17DDAAE2276478300AF877E /* libspirv-cross.a in Frameworks */,
+				B1874BA42288315200851674 /* libspirv-cross.a in Frameworks */,
 				B1BAF00D22763ED0003E4B98 /* libyaml-cpp.a in Frameworks */,
 				B1BAF00B22763EC7003E4B98 /* libLWGC.a in Frameworks */,
 				B1BAF00922763EBC003E4B98 /* libglfw3.a in Frameworks */,
@@ -29522,12 +29522,12 @@
 				HEADER_SEARCH_PATHS = /usr/local/include;
 				LIBRARY_SEARCH_PATHS = (
 					/usr/local/lib,
-					"$(PROJECT_DIR)/Deps/LWGC/Deps/vulkansdk-macos-1.1.101.0/macOS/lib",
 					"$(PROJECT_DIR)/Deps/LWGC/Deps/SPIRV-Cross",
 					"$(PROJECT_DIR)/Deps/LWGC/Deps/ImGUI_Volk",
 					"$(PROJECT_DIR)/Deps/LWGC/Deps/glfw/src",
 					"$(PROJECT_DIR)/Deps/LWGC",
 					"$(PROJECT_DIR)/Deps/yaml-cpp",
+					"$(PROJECT_DIR)/Deps/LWGC/Deps/vulkansdk-macos-1.1.101.0/macOS/lib",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SYSTEM_HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/Deps/LWGC/Deps/vulkansdk-macos-1.1.101.0/macOS/include";
@@ -29545,12 +29545,12 @@
 				HEADER_SEARCH_PATHS = /usr/local/include;
 				LIBRARY_SEARCH_PATHS = (
 					/usr/local/lib,
-					"$(PROJECT_DIR)/Deps/LWGC/Deps/vulkansdk-macos-1.1.101.0/macOS/lib",
 					"$(PROJECT_DIR)/Deps/LWGC/Deps/SPIRV-Cross",
 					"$(PROJECT_DIR)/Deps/LWGC/Deps/ImGUI_Volk",
 					"$(PROJECT_DIR)/Deps/LWGC/Deps/glfw/src",
 					"$(PROJECT_DIR)/Deps/LWGC",
 					"$(PROJECT_DIR)/Deps/yaml-cpp",
+					"$(PROJECT_DIR)/Deps/LWGC/Deps/vulkansdk-macos-1.1.101.0/macOS/lib",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SYSTEM_HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/Deps/LWGC/Deps/vulkansdk-macos-1.1.101.0/macOS/include";

@@ -24,7 +24,7 @@ struct DrawIndirectCommand
 [vk::binding(0, 4)]
 RWStructuredBuffer< DrawIndirectCommand >	drawCommands;
 
-[vk::push_constant] cbuffer currentData { int targetDrawIndex; int al; };
+[vk::push_constant] cbuffer currentData { int targetDrawIndex; };
 
 [numthreads(8, 8, 8)]
 void        main(ComputeInput i)
@@ -33,7 +33,7 @@ void        main(ComputeInput i)
 
 	// if (v > 1.0)
 		// return ;
-	
+
 	float3 offset = i.dispatchThreadId.xyz * 1.1;
 
 	VoxelVertex v1 = {
@@ -57,7 +57,7 @@ void        main(ComputeInput i)
 	};
 
 	uint index;
-	InterlockedAdd(drawCommands[targetDrawIndex + al].vertexCount, 1, index);
+	InterlockedAdd(drawCommands[targetDrawIndex].vertexCount, 1, index);
 	index *= 6;
 
 	// Append a quad to test
