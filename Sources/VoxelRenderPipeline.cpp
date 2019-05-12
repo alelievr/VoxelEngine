@@ -153,6 +153,9 @@ void	VoxelRenderPipeline::SetupRenderPasses()
 void	VoxelRenderPipeline::Render(const std::vector< Camera * > & cameras, RenderContext * context)
 {
 	VkCommandBuffer cmd = GetCurrentFrameCommandBuffer();
+	
+	// First, before the generation, we reset the draw buffer
+	renderer->SetDrawBufferValues(currentFrame, 0, 1, 0, 0);
 
 	{
 		const auto & computeSample = ProfilingSample("Noise Generation");
@@ -170,6 +173,8 @@ void	VoxelRenderPipeline::Render(const std::vector< Camera * > & cameras, Render
 		// Retrieve the buffer offset to write the draw arguments from the GPU iso-surface algorithm
 		size_t bufferIndex;
 		VkBuffer drawBuffer = renderer->GetDrawBuffer(currentFrame, bufferIndex);
+		// Reset the vertex number before the generation:
+		// TODO: rename this
 		isoSurfaceVoxelComputeShader.SetBuffer("drawCommands", drawBuffer, renderer->GetDrawBufferSize(), VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
 		// Update the draw index via push-constants:
 		isoSurfaceVoxelComputeShader.SetPushConstant(cmd, "targetDrawIndex", &bufferIndex);
@@ -225,7 +230,7 @@ void	VoxelRenderPipeline::RecordIndirectDraws(RenderPass & pass, RenderContext *
 			// We only have one buffer currently so we don't need that
 			// indirectRenderer->SetOffset(currentFrame * sizeof(VkDrawIndirectCommand));
 
-			// indirectRenderer->SetDrawBufferValues(currentFrame, 100, 1, 0, 0);
+			// indirectRenderer->SetDrawBufferValues(currentFrame, 512, 1, 0, 0);
 
 			pass.BindDescriptorSet(LWGCBinding::Object, renderer->GetDescriptorSet());
 
@@ -234,9 +239,8 @@ void	VoxelRenderPipeline::RecordIndirectDraws(RenderPass & pass, RenderContext *
 
 			indirectRenderer->RecordDrawCommand(cmd, currentFrame);
 		}
-
-		// Optional: record all mesh renderers so we can see gizmos and debug objects 
-		RenderPipeline::RecordAllMeshRenderers(forwardPass, context);
 	}
 
+	// Optional: record all mesh renderers so we can see gizmos and debug objects 
+	RenderPipeline::RecordAllMeshRenderers(forwardPass, context);
 }
