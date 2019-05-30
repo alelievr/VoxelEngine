@@ -33,12 +33,12 @@ void	VoxelRenderPipeline::Initialize(SwapChain * swapChain)
 	Vk::CreateBuffer(sizeof(VoxelVertexAttributes) * 128 * 128 * 64 * 6, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexMemory);
 
 	isoSurfaceVoxelComputeShader.SetBuffer("vertices", vertexBuffer, sizeof(VoxelVertexAttributes) * 128 * 128 * 64 * 6, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
-
+	
 	// Debug cube
-	auto debugMaterial = Material::Create(BuiltinShaders::ColorDirection, BuiltinShaders::DefaultVertex);
-	auto cube = new GameObject(new MeshRenderer(PrimitiveType::Cube, debugMaterial));
-	cube->GetTransform()->SetPosition(glm::vec3(0, 0, 5));
-	hierarchy->AddGameObject(cube);
+	// auto debugMaterial = Material::Create(BuiltinShaders::ColorDirection, BuiltinShaders::DefaultVertex);
+	// auto cube = new GameObject(new MeshRenderer(PrimitiveType::Cube, debugMaterial));
+	// cube->GetTransform()->SetPosition(glm::vec3(0, 0, 5));
+	// hierarchy->AddGameObject(cube);
 
 	unlitMinecraftMaterial->SetVertexInputState(voxelVertexInputStateInfo);
 
@@ -46,6 +46,10 @@ void	VoxelRenderPipeline::Initialize(SwapChain * swapChain)
 	hierarchy->AddGameObject(new GameObject(renderer));
 
 	renderer->AllocateDrawBuffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, swapChain->GetImageCount(), 1);
+
+	size_t bufferIndex;
+	VkBuffer drawBuffer = renderer->GetDrawBuffer(0, bufferIndex);
+	isoSurfaceVoxelComputeShader.SetBuffer("drawCommands", drawBuffer, renderer->GetDrawBufferSize(), VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
 
 	// Allocate an async command queue (the device must have more than one queue to run the application)
 	instance->AllocateDeviceQueue(asyncComputeQueue, asyncComputeQueueIndex);
@@ -161,7 +165,7 @@ void	VoxelRenderPipeline::Render(const std::vector< Camera * > & cameras, Render
 		const auto & computeSample = ProfilingSample("Noise Generation");
 
 		auto computeCmd = asyncComputePool.BeginSingle();
-		noiseComputeShader.Dispatch(cmd, 128, 128, 128);
+		noiseComputeShader.Dispatch(computeCmd, 128, 128, 128);
 		asyncComputePool.EndSingle(computeCmd); // TODO: unneeded fence
 	}
 
@@ -173,12 +177,11 @@ void	VoxelRenderPipeline::Render(const std::vector< Camera * > & cameras, Render
 		// Retrieve the buffer offset to write the draw arguments from the GPU iso-surface algorithm
 		size_t bufferIndex;
 		VkBuffer drawBuffer = renderer->GetDrawBuffer(0, bufferIndex);
-		// Reset the vertex number before the generation:
-		// TODO: rename this
-		isoSurfaceVoxelComputeShader.SetBuffer("drawCommands", drawBuffer, renderer->GetDrawBufferSize(), VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+		// isoSurfaceVoxelComputeShader.SetBuffer("drawCommands", drawBuffer, renderer->GetDrawBufferSize(), VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+		// TODO: Reset the vertex number before the generation:
 		// Update the draw index via push-constants:
-		isoSurfaceVoxelComputeShader.SetPushConstant(cmd, "targetDrawIndex", &bufferIndex);
-		isoSurfaceVoxelComputeShader.Dispatch(cmd, 8, 8, 8); // small dispatch to test
+		isoSurfaceVoxelComputeShader.SetPushConstant(asyncCmd, "targetDrawIndex", &bufferIndex);
+		isoSurfaceVoxelComputeShader.Dispatch(asyncCmd, 128, 128, 128); // small dispatch to test
 		asyncComputePool.EndSingle(asyncCmd); // fence
 	}
 
