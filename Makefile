@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2019/04/28 14:00:41 by alelievr         ###   ########.fr        #
+#    Updated: 2019/05/30 15:31:56 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -176,6 +176,7 @@ all: $(LWGCLIB) check_env $(NAME)
 $(LWGCLIB):
 	@git submodule update --init
 	@make -C Deps/LWGC
+	@. ./InitVulkanEnv_OSX
 
 $(YAMLLIB):
 	@git submodule update --init

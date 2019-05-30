@@ -3,8 +3,8 @@
 #include "Common/VoxelStructs.hlsl"
 
 // TODO: something to manage auto-bindings from ComputeShader class
-// [vk::binding(0, 1)]
-// ConstantBuffer< LWGC_PerFrame > frame;
+[vk::binding(0, 1)]
+ConstantBuffer< LWGC_PerFrame > frame;
 
 [vk::binding(0, 2)]
 uniform Texture3D< half > noiseVolume;
@@ -28,7 +28,7 @@ RWStructuredBuffer< DrawIndirectCommand >	drawCommands;
 
 bool		IsAir(float value)
 {
-	return value < 0.85;
+	return value < frame.time.y;
 }
 
 bool		NeedsFace(float neighbourVoxelValue, bool centerIsAir, out bool invertFace)
@@ -77,7 +77,7 @@ void        main(ComputeInput i)
 	// guard for samping outside (border)
 	if (any(i.dispatchThreadId == 128)) // TODO: hardcoded chunk size
 		return ;
-		
+
 	float center = noiseVolume[i.dispatchThreadId];
 
 	bool centerIsAir = IsAir(center);
@@ -93,7 +93,7 @@ void        main(ComputeInput i)
 	bool invertForward;
 	bool generateFaceForward = NeedsFace(forward, centerIsAir, invertForward);
 
-	float3 offset = i.dispatchThreadId.xyz * 1.1;
+	float3 offset = i.dispatchThreadId.xyz;
 
 	// bool intertFace; // TODO
 
