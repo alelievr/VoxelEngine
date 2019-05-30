@@ -4,6 +4,7 @@
 #include "Core/Rendering/RenderPipelineManager.hpp"
 #include "Core/Vulkan/ProfilingSample.hpp"
 #include "LWGC.hpp"
+#include "AssetManager.hpp"
 
 using namespace LWGC;
 
@@ -33,7 +34,7 @@ void	VoxelRenderPipeline::Initialize(SwapChain * swapChain)
 	Vk::CreateBuffer(sizeof(VoxelVertexAttributes) * 128 * 128 * 64 * 6, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexMemory);
 
 	isoSurfaceVoxelComputeShader.SetBuffer("vertices", vertexBuffer, sizeof(VoxelVertexAttributes) * 128 * 128 * 64 * 6, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
-	
+
 	// Debug cube
 	// auto debugMaterial = Material::Create(BuiltinShaders::ColorDirection, BuiltinShaders::DefaultVertex);
 	// auto cube = new GameObject(new MeshRenderer(PrimitiveType::Cube, debugMaterial));
@@ -41,6 +42,7 @@ void	VoxelRenderPipeline::Initialize(SwapChain * swapChain)
 	// hierarchy->AddGameObject(cube);
 
 	unlitMinecraftMaterial->SetVertexInputState(voxelVertexInputStateInfo);
+	unlitMinecraftMaterial->SetTexture(TextureBinding::Albedo, AssetManager::blockAtlas, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
 
 	renderer = new IndirectRenderer(unlitMinecraftMaterial);
 	hierarchy->AddGameObject(new GameObject(renderer));
@@ -232,8 +234,6 @@ void	VoxelRenderPipeline::RecordIndirectDraws(RenderPass & pass, RenderContext *
 
 			// We only have one buffer currently so we don't need that
 			// indirectRenderer->SetOffset(0 * sizeof(VkDrawIndirectCommand));
-
-			// indirectRenderer->SetDrawBufferValues(0, 512, 1, 0, 0);
 
 			pass.BindDescriptorSet(LWGCBinding::Object, renderer->GetDescriptorSet());
 

@@ -1,6 +1,7 @@
 #include "VoxelEngine.hpp"
 #include "VoxelRenderPipeline.hpp"
 #include "GUIManager.hpp"
+#include "AssetManager.hpp"
 
 VoxelEngine::VoxelEngine(TerrainSettings & settings)
 {
@@ -24,6 +25,8 @@ VoxelEngine::VoxelEngine(TerrainSettings & settings)
 	GUIManager::Initialize();
 
 	Load(settings);
+
+	AssetManager::LoadAssets();
 
 	auto cam = new GameObject(new Camera());
 	cam->GetTransform()->SetPosition(glm::vec3(0, 0, -5));

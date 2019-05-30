@@ -21,6 +21,7 @@ SRC			=	Main.cpp				\
 				VoxelEngine.cpp			\
 				VoxelRenderPipeline.cpp	\
 				GUIManager.cpp			\
+				AssetManager.cpp		\
 
 #	Objects
 OBJDIR		=	obj

@@ -17,23 +17,14 @@ struct Atlas
 	float4	size;
 };
 
-[vk::binding(0, 4)]
-StructuredBuffer< SizeOffset >	sizeOffsets; // Metal 1 does not support Buffer<>
-[vk::binding(1, 4)]
-ConstantBuffer< Atlas >	atlas;
-
 FragmentOutput main(VoxelFragmentInput i)
 {
 	FragmentOutput	o;
 
-	o.color = float4(1, 1, 0, 1);
-
-	// float4 sizeOffset = sizeOffsets[step(frame.time.y, 0.5)].sizeOffset;
-    // sizeOffset.zw += atlas[0].size.zw * 0.5;
-
 	// o.color = float4(1, 1, 0, 1);
-	// float2 atlasUVs = UvToAtlas(i.uv, sizeOffset);
-	// o.color = float4(albedoMap.SampleLevel(trilinearClamp, atlasUVs, 0).rgb, 0.5);
+
+	// i.uv are already in atlas format, transformation is made in the vertex shader
+	o.color = float4(albedoMap.SampleLevel(trilinearClamp, i.uv, 0).rgb, 0.5);
 
 	return o;
 }

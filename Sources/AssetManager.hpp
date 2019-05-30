@@ -8,8 +8,11 @@
 #include "VoxIncludeDeps.hpp"
 #include "IncludeDeps.hpp"
 #include GLM_INCLUDE
+#include "LWGC.hpp"
 
 #define MAX_BLOCK_ID	256
+
+using namespace LWGC;
 
 enum class	TextureSide
 {
@@ -17,13 +20,12 @@ enum class	TextureSide
 	Side,
 	Top,
 	Bottom,
-}
+};
 
 struct		BlockData
 {
 	uint8_t		id;
 	TextureSide	side;
-	glm::vec4	atlasDatas;
 };
 
 class		AssetManager
@@ -34,6 +36,7 @@ class		AssetManager
 
 	public:
 		static std::unordered_map< std::string, BlockData >	blockDatas;
+		static Texture2DAtlas *								blockAtlas;
 
 		AssetManager(void) = default;
 		AssetManager(const AssetManager &) = delete;

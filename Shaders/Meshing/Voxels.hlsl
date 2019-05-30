@@ -95,8 +95,6 @@ void        main(ComputeInput i)
 
 	float3 offset = i.dispatchThreadId.xyz;
 
-	// bool intertFace; // TODO
-
 	// Check if Metal support this (technically it should)
 	GroupMemoryBarrierWithGroupSync();
 
