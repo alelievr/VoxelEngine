@@ -23,7 +23,7 @@ bool		TerrainSettings::Load(const std::string & fileName, TerrainSettings & sett
 		const auto & yaml = YAML::LoadFile(fileName);
 
 		settings.globalSeed = yaml["globalSeed"].as<int>();
-		settings.chunkSize = yaml["globalSeed"].as<int>();
+		settings.chunkSize = yaml["chunkSize"].as<int>();
 
 		for (const auto & node : yaml["noiseSettings"])
 		{

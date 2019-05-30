@@ -5,6 +5,8 @@ GameObject *		GUIManager::parent;
 
 using namespace LWGC;
 
+const char *noiseTypeEnumNames[] = {"Perlin", "Simplex", "Voronoi"};
+
 void		GUIManager::Initialize(void) noexcept
 {
 	Application * app = Application::Get();
@@ -46,18 +48,110 @@ void		GUIManager::DockManager(void) noexcept
 	ImGui::End();
 }
 
+#define NAME_BUFFER_SIZE	127
+static char nameBuffer[NAME_BUFFER_SIZE + 1];
 void		GUIManager::DrawTerrainSettingsGUI(void) noexcept
 {
 	bool opened = true; // TODO
 
+
 	ImGui::Begin("Voxel Terrain Settings", &opened, ImGuiDockNodeFlags_PassthruCentralNode);
 	{
-		ImGui::TextColored(ImVec4{1, 0, 1, 1}, "AAAA");
 		ImGui::InputInt("Global Seed", &currentSettings->globalSeed, 1, 10);
+		ImGui::InputInt("Chunk Size", &currentSettings->chunkSize, 1, 10);
 
-		// TODO: save button
+		if (ImGui::Button("Add Noise"))
+			currentSettings->noiseSettings.push_back(NoiseSettings{});
+
+		if (ImGui::Button("Save")) {
+			// currentSettings->Save()
+			ImGui::TextColored(ImVec4{1, 0, 1, 1}, "OK");
+		}
+
+		ImGui::Text("Noise Settings List");
+		if (ImGui::ListBoxHeader("##empty", ImVec2(-1, -1)))
+		{
+			for (size_t id = 0; id < currentSettings->noiseSettings.size(); id++)
+			{
+				DrawNoiseSettingItem(id);
+			}
+			ImGui::ListBoxFooter();
+		}
 	}
 	ImGui::End();
+}
+
+void		GUIManager::DrawNoiseSettingItem(size_t id)
+{
+	auto & noiseSetting = currentSettings->noiseSettings[id];
+	size_t noiseType = static_cast< int >(noiseSetting.type);
+
+	ImGui::PushID(id);
+	strncpy(nameBuffer, noiseSetting.name.data(), NAME_BUFFER_SIZE);
+	
+	ImGui::Selectable(nameBuffer, false);
+	
+	if (ImGui::InputText("Name", nameBuffer, NAME_BUFFER_SIZE))
+		noiseSetting.name = std::string(nameBuffer);
+
+	ImGui::InputInt("Octaves", &noiseSetting.octaves, 1, 10);
+	ImGui::InputFloat("Turbulance", &noiseSetting.turbulance, 1, 10);
+		
+	if (ImGui::BeginCombo("Noise", noiseTypeEnumNames[noiseType], 0))
+	{
+		for (size_t comboId = 0; comboId < 3; comboId++)
+		{
+			ImGui::PushID(comboId);
+			const bool item_selected = (noiseType == comboId);
+			const char* item_text;
+
+			if (noiseType >= 3)
+				item_text = "*Unknown item*";
+			else
+				item_text = noiseTypeEnumNames[comboId];
+
+			if (ImGui::Selectable(item_text, item_selected))
+				noiseSetting.type = static_cast< NoiseType >(comboId);
+			
+			if (item_selected)
+				ImGui::SetItemDefaultFocus();
+			
+			ImGui::PopID();
+		}
+		ImGui::EndCombo();
+	}
+
+
+    // if (!BeginCombo(label, preview_value, ImGuiComboFlags_None))
+    //     return false;
+
+    // Display items
+    // FIXME-OPT: Use clipper (but we need to disable it on the appearing frame to make sure our call to SetItemDefaultFocus() is processed)
+    // bool value_changed = false;
+    // for (int i = 0; i < items_count; i++)
+    // {
+    //     PushID((void*)(intptr_t)i);
+    //     const bool item_selected = (i == *current_item);
+    //     const char* item_text;
+    //     if (!items_getter(data, i, &item_text))
+    //         item_text = "*Unknown item*";
+    //     if (Selectable(item_text, item_selected))
+    //     {
+    //         value_changed = true;
+    //         *current_item = i;
+    //     }
+    //     if (item_selected)
+    //         SetItemDefaultFocus();
+    //     PopID();
+    // }
+
+    // EndCombo();
+
+
+	ImGui::PopID();
+	if (id != currentSettings->noiseSettings.size() - 1) 
+		ImGui::Separator();
+
 }
 
 void		GUIManager::LoadSettings(TerrainSettings * settings) noexcept

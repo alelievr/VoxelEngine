@@ -6,6 +6,21 @@
 
 #include YAML_INCLUDE
 
+enum class NoiseType
+{
+	Perlin,
+	Simplex,
+	Voronoi,
+};
+
+enum class IterationType
+{
+	Octave,
+	FBM,
+	Ridged,
+	Wrap,
+};
+
 class NoiseSettings // TODO: parent class ?
 {
 	private:
@@ -17,8 +32,10 @@ class NoiseSettings // TODO: parent class ?
 		int				octaves;
 		float			turbulance;
 		std::string		name;
+		NoiseType		type;
+		IterationType	iterationType;
 
-		NoiseSettings(void) : _dirty(false) {}
+		NoiseSettings(void) : _dirty(false), octaves(2), turbulance(1), name("Perlin"), type(NoiseType::Perlin) {}
 		~NoiseSettings() = default;
 		bool		IsDrity(void) const noexcept { return _dirty; }
 
@@ -46,7 +63,7 @@ class		TerrainSettings
 
 	public:
 		std::vector< NoiseSettings >	noiseSettings;
-		size_t							chunkSize;
+		int								chunkSize;
 		int								globalSeed;
 		// NoiseTreeCSG	_noiseTree; // TODO
 

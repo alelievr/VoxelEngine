@@ -13,6 +13,8 @@ class		GUIManager
 		static TerrainSettings *	currentSettings;
 		static GameObject *			parent;
 
+		static void		DrawNoiseSettingItem(size_t id);
+
 	public:
 		GUIManager(void) = delete;
 		GUIManager(const GUIManager &) = delete;
