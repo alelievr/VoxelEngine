@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B101A22B22A300870087ADDF /* AssetManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B101A20922A300860087ADDF /* AssetManager.cpp */; };
+		B101A22D22A300AF0087ADDF /* Assets in CopyFiles */ = {isa = PBXBuildFile; fileRef = B101A22C22A300AE0087ADDF /* Assets */; };
 		B17DAEB82276466E00AF877E /* glslangValidator in CopyFiles */ = {isa = PBXBuildFile; fileRef = B1BAF00E22763EFF003E4B98 /* glslangValidator */; };
 		B17DDAA5227646B000AF877E /* Shaders in CopyFiles */ = {isa = PBXBuildFile; fileRef = B17DDAA4227646AF00AF877E /* Shaders */; };
 		B17DDAAA227646C000AF877E /* Meshing in CopyFiles */ = {isa = PBXBuildFile; fileRef = B17DDAA6227646BD00AF877E /* Meshing */; };
@@ -214,6 +216,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 16;
 			files = (
+				B101A22D22A300AF0087ADDF /* Assets in CopyFiles */,
 				B17DDAAA227646C000AF877E /* Meshing in CopyFiles */,
 				B17DDAAB227646C000AF877E /* Shading in CopyFiles */,
 				B17DDAAC227646C000AF877E /* Noises in CopyFiles */,
@@ -226,6 +229,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		B101A20922A300860087ADDF /* AssetManager.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = AssetManager.cpp; path = Sources/AssetManager.cpp; sourceTree = "<group>"; };
+		B101A22C22A300AE0087ADDF /* Assets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Assets; sourceTree = "<group>"; };
 		B13BEC9D22763CE900EDD545 /* VoxelEngine */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = VoxelEngine; sourceTree = BUILT_PRODUCTS_DIR; };
 		B17DAEB22276459800AF877E /* Shaders */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Shaders; path = Deps/LWGC/Shaders; sourceTree = "<group>"; };
 		B17DAEB42276460F00AF877E /* Common */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Common; path = Deps/LWGC/Shaders/Common; sourceTree = "<group>"; };
@@ -235,13 +240,13 @@
 		B17DAEBE2276468100AF877E /* settings.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = settings.json; sourceTree = "<group>"; };
 		B17DAEC12276468100AF877E /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		B17DAEC22276468100AF877E /* .gitmodules */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitmodules; sourceTree = "<group>"; };
-		B17DAEC72276468100AF877E /* dgph */ = {isa = PBXFileReference; lastKnownFileType = file; path = dgph; sourceTree = "<group>"; };
+		B17DAEC72276468100AF877E /* dgph */ = {isa = PBXFileReference; lastKnownFileType = text; path = dgph; sourceTree = "<group>"; };
 		B17DAECA2276468100AF877E /* compute.LinkFileList */ = {isa = PBXFileReference; lastKnownFileType = text; path = compute.LinkFileList; sourceTree = "<group>"; };
 		B17DAECB2276468100AF877E /* Script-71C02966223FC4960086693D.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "Script-71C02966223FC4960086693D.sh"; sourceTree = "<group>"; };
-		B17DAECD2276468100AF877E /* dgph */ = {isa = PBXFileReference; lastKnownFileType = file; path = dgph; sourceTree = "<group>"; };
+		B17DAECD2276468100AF877E /* dgph */ = {isa = PBXFileReference; lastKnownFileType = text; path = dgph; sourceTree = "<group>"; };
 		B17DAED02276468100AF877E /* cube.LinkFileList */ = {isa = PBXFileReference; lastKnownFileType = text; path = cube.LinkFileList; sourceTree = "<group>"; };
 		B17DAED12276468100AF877E /* Script-B15B151A222C8C8D00880C9E.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "Script-B15B151A222C8C8D00880C9E.sh"; sourceTree = "<group>"; };
-		B17DAED32276468100AF877E /* dgph */ = {isa = PBXFileReference; lastKnownFileType = file; path = dgph; sourceTree = "<group>"; };
+		B17DAED32276468100AF877E /* dgph */ = {isa = PBXFileReference; lastKnownFileType = text; path = dgph; sourceTree = "<group>"; };
 		B17DAED62276468100AF877E /* Arrow.d */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.dtrace; path = Arrow.d; sourceTree = "<group>"; };
 		B17DAED72276468100AF877E /* Arrow.dia */ = {isa = PBXFileReference; lastKnownFileType = file; path = Arrow.dia; sourceTree = "<group>"; };
 		B17DAED82276468100AF877E /* Arrow.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = Arrow.o; sourceTree = "<group>"; };
@@ -10376,6 +10381,8 @@
 		B13BEC9422763CE800EDD545 = {
 			isa = PBXGroup;
 			children = (
+				B101A22C22A300AE0087ADDF /* Assets */,
+				B101A20922A300860087ADDF /* AssetManager.cpp */,
 				B17DDAA9227646BF00AF877E /* Common */,
 				B17DDAA6227646BD00AF877E /* Meshing */,
 				B17DDAA8227646BE00AF877E /* Noises */,
@@ -29347,6 +29354,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B101A22B22A300870087ADDF /* AssetManager.cpp in Sources */,
 				B1BAEFFA22763D99003E4B98 /* VoxelRenderPipeline.cpp in Sources */,
 				B1BAEFF722763D99003E4B98 /* Main.cpp in Sources */,
 				B1BAEFF922763D99003E4B98 /* VoxelEngine.cpp in Sources */,

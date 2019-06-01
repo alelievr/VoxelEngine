@@ -36,13 +36,18 @@ void	VoxelRenderPipeline::Initialize(SwapChain * swapChain)
 	isoSurfaceVoxelComputeShader.SetBuffer("vertices", vertexBuffer, sizeof(VoxelVertexAttributes) * 128 * 128 * 64 * 6, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
 
 	// Debug cube
-	// auto debugMaterial = Material::Create(BuiltinShaders::ColorDirection, BuiltinShaders::DefaultVertex);
-	// auto cube = new GameObject(new MeshRenderer(PrimitiveType::Cube, debugMaterial));
-	// cube->GetTransform()->SetPosition(glm::vec3(0, 0, 5));
-	// hierarchy->AddGameObject(cube);
+	auto debugMaterial = Material::Create(BuiltinShaders::Standard, BuiltinShaders::DefaultVertex);
+	debugMaterial->SetTexture(TextureBinding::Albedo, AssetManager::blockAtlas, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
+	auto cube = new GameObject(new MeshRenderer(PrimitiveType::Cube, debugMaterial));
+	cube->GetTransform()->SetPosition(glm::vec3(0, 0, 5));
+	hierarchy->AddGameObject(cube);
+
+	Texture2D * test = Texture2D::Create("Assets/Textures/Blocks/acacia_leaves.png", VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
 
 	unlitMinecraftMaterial->SetVertexInputState(voxelVertexInputStateInfo);
-	unlitMinecraftMaterial->SetTexture(TextureBinding::Albedo, AssetManager::blockAtlas, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
+	unlitMinecraftMaterial->SetTexture(TextureBinding::Albedo, test, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
+	unlitMinecraftMaterial->SetBuffer("sizeOffsets", AssetManager::blockAtlas->GetSizeOffsetBuffer(), AssetManager::blockAtlas->GetSizeOffsetBufferSize(), VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+	unlitMinecraftMaterial->SetBuffer("atlas", AssetManager::blockAtlas->GetAtlasSizeBuffer(), AssetManager::blockAtlas->GetAtlasSizeBufferSize(), VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
 
 	renderer = new IndirectRenderer(unlitMinecraftMaterial);
 	hierarchy->AddGameObject(new GameObject(renderer));
@@ -200,6 +205,9 @@ void	VoxelRenderPipeline::Render(const std::vector< Camera * > & cameras, Render
 
 			RecordIndirectDraws(forwardPass, context);
 
+			// Optional: record all mesh renderers so we can see gizmos and debug objects
+			RenderPipeline::RecordAllMeshRenderers(forwardPass, context);
+
 			RenderPipelineManager::endCameraRendering.Invoke(camera);
 		}
 	}
@@ -243,7 +251,4 @@ void	VoxelRenderPipeline::RecordIndirectDraws(RenderPass & pass, RenderContext *
 			indirectRenderer->RecordDrawCommand(cmd, 0);
 		}
 	}
-
-	// Optional: record all mesh renderers so we can see gizmos and debug objects
-	RenderPipeline::RecordAllMeshRenderers(forwardPass, context);
 }

@@ -45,7 +45,7 @@ bool		NeedsFace(float neighbourVoxelValue, bool centerIsAir, out bool invertFace
 	}
 }
 
-void		AddFace(VoxelVertex v1, VoxelVertex v2, VoxelVertex v3, VoxelVertex v4, bool invert)
+void		AddFace(float3 v1, float3 v2, float3 v3, float3 v4, bool invert, uint face)
 {
 	uint index;
 	InterlockedAdd(drawCommands[targetDrawIndex].vertexCount, 6, index);
@@ -53,21 +53,21 @@ void		AddFace(VoxelVertex v1, VoxelVertex v2, VoxelVertex v3, VoxelVertex v4, bo
 	// Append a quad to test
 	if (invert)
 	{
-		vertices[index + 5] = v1;
-		vertices[index + 4] = v4;
-		vertices[index + 3] = v3;
-		vertices[index + 2] = v3;
-		vertices[index + 1] = v2;
-		vertices[index + 0] = v1;
+		vertices[index + 5] = PackVoxelVertex(v1, 0, face);
+		vertices[index + 4] = PackVoxelVertex(v4, 0, face);
+		vertices[index + 3] = PackVoxelVertex(v3, 0, face);
+		vertices[index + 2] = PackVoxelVertex(v3, 0, face);
+		vertices[index + 1] = PackVoxelVertex(v2, 0, face);
+		vertices[index + 0] = PackVoxelVertex(v1, 0, face);
 	}
 	else
 	{
-		vertices[index + 0] = v1;
-		vertices[index + 1] = v4;
-		vertices[index + 2] = v3;
-		vertices[index + 3] = v3;
-		vertices[index + 4] = v2;
-		vertices[index + 5] = v1;
+		vertices[index + 0] = PackVoxelVertex(v1, 0, face);
+		vertices[index + 1] = PackVoxelVertex(v4, 0, face);
+		vertices[index + 2] = PackVoxelVertex(v3, 0, face);
+		vertices[index + 3] = PackVoxelVertex(v3, 0, face);
+		vertices[index + 4] = PackVoxelVertex(v2, 0, face);
+		vertices[index + 5] = PackVoxelVertex(v1, 0, face);
 	}
 }
 
@@ -101,57 +101,33 @@ void        main(ComputeInput i)
 	// TODO: refactor this: way too much VGPR used
 
 	// back back left
-	VoxelVertex v1 = {
-		float3(0, 0, 0) + offset,
-		0
-	};
+	float3 v1 = float3(0, 0, 0) + offset;
 
 	// back back right
-	VoxelVertex v2 = {
-		float3(1, 0, 0) + offset,
-		0
-	};
+	float3 v2 = float3(1, 0, 0) + offset;
 
 	// back top right
-	VoxelVertex v3 = {
-		float3(1, 1, 0) + offset,
-		0
-	};
+	float3 v3 = float3(1, 1, 0) + offset;
 
 	// back top left
-	VoxelVertex v4 = {
-		float3(0, 1, 0) + offset,
-		0
-	};
+	float3 v4 = float3(0, 1, 0) + offset;
 
 	// forward back left
-	VoxelVertex v5 = {
-		float3(0, 0, 1) + offset,
-		0
-	};
+	float3 v5 = float3(0, 0, 1) + offset;
 
 	// forward back right
-	VoxelVertex v6 = {
-		float3(1, 0, 1) + offset,
-		0
-	};
+	float3 v6 = float3(1, 0, 1) + offset;
 
 	// forward top right
-	VoxelVertex v7 = {
-		float3(1, 1, 1) + offset,
-		0
-	};
+	float3 v7 = float3(1, 1, 1) + offset;
 
 	// forward top left
-	VoxelVertex v8 = {
-		float3(0, 1, 1) + offset,
-		0
-	};
+	float3 v8 = float3(0, 1, 1) + offset;
 
 	if (generateFaceTop)
-		AddFace(v4, v3, v7, v8, invertTop);
+		AddFace(v4, v3, v7, v8, invertTop, TOP_FACE);
 	if (generateFaceForward)
-		AddFace(v8, v7, v6, v5, invertForward);
+		AddFace(v8, v7, v6, v5, invertForward, FORWARD_FACE);
 	if (generateFaceRight)
-		AddFace(v3, v2, v6, v7, invertRight);
+		AddFace(v3, v2, v6, v7, invertRight, RIGHT_FACE);
 }

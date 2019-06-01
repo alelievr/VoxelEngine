@@ -12,12 +12,20 @@ struct Atlas
 	float4	size;
 };
 
-[vk::binding(0, 0)]
+[vk::binding(0, 4)]
 StructuredBuffer< SizeOffset >	sizeOffsets; // Metal 1 does not support Buffer<>
-[vk::binding(1, 0)]
+[vk::binding(1, 4)]
 ConstantBuffer< Atlas >	atlas;
 
-VoxelFragmentInput main(VoxelVertexInput i)
+static float2 UVs[] =
+{
+	float2(0, 0),
+	float2(1, 0),
+	float2(1, 1),
+	float2(0, 1),
+};
+
+VoxelFragmentInput main(VoxelVertexInput i, uint vertexID : SV_VertexID)
 {
 	VoxelFragmentInput	o;
 
@@ -30,8 +38,8 @@ VoxelFragmentInput main(VoxelVertexInput i)
 
     sizeOffset.zw += atlas.size.zw * 0.5; // offset of half texel
 
-	// TODO: vertex UV generation
-    o.uv = UvToAtlas(float2(0, 0), sizeOffset);
+    // o.uv = UvToAtlas(float2(0, 0), sizeOffset);
+	o.uv = i.position.xy % 2;
 
 	return o;
 }

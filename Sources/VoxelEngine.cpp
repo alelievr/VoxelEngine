@@ -24,9 +24,14 @@ VoxelEngine::VoxelEngine(TerrainSettings & settings)
 
 	GUIManager::Initialize();
 
-	Load(settings);
-
-	AssetManager::LoadAssets();
+	try {
+		AssetManager::LoadAssets();
+		Load(settings);
+	} catch (const std::runtime_error & e) {
+		std::cerr << e.what() << std::endl;
+		std::cerr << "Exiting." << std::endl;
+		exit(-1);
+	}
 
 	auto cam = new GameObject(new Camera());
 	cam->GetTransform()->SetPosition(glm::vec3(0, 0, -5));

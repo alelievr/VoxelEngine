@@ -22,6 +22,9 @@ const std::string			SideTexture = "_side";
 const std::string			BottomTexture = "_bottom";
 const std::string			TopTexture = "_top";
 
+// All textures are in png
+const std::string			ImageFormatExtension = "png";
+
 void						AssetManager::LoadAssets()
 {
 	// Load all block datas
@@ -33,7 +36,8 @@ void						AssetManager::LoadAssets()
 	{
 		while ((ent = readdir(dir)) != NULL)
 		{
-			blockImagePathes.push_back(ent->d_name);
+			if (LWGC::GetExtension(ent->d_name) == ImageFormatExtension)
+				blockImagePathes.push_back(std::string(BlockTexturesPath + "/" + ent->d_name));
 		}
 		closedir(dir);
 	}
@@ -53,7 +57,7 @@ void						AssetManager::LoadAssets()
 
 		// We add 1 for ids because 0 is air
 		blockDatas[fileName] = BlockData{
-			static_cast< uint8_t >(id++),
+			static_cast< uint8_t >(id),
 			TextureSide::All, // TODO
 		};
 

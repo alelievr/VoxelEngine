@@ -50,10 +50,13 @@ void		GUIManager::DrawTerrainSettingsGUI(void) noexcept
 {
 	bool opened = true; // TODO
 
+	if (currentSettings == nullptr)
+		return;
+
 	ImGui::Begin("Voxel Terrain Settings", &opened, ImGuiDockNodeFlags_PassthruCentralNode);
 	{
-		ImGui::TextColored(ImVec4{1, 0, 1, 1}, "AAAA");
-		ImGui::InputInt("Global Seed", &currentSettings->globalSeed, 1, 10);
+		// ImGui::TextColored(ImVec4{1, 0, 1, 1}, "AAAA");
+		// ImGui::InputInt("Global Seed", &currentSettings->globalSeed, 1, 10);
 
 		// TODO: save button
 	}
