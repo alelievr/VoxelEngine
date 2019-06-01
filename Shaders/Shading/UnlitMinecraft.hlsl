@@ -21,10 +21,10 @@ FragmentOutput main(VoxelFragmentInput i)
 {
 	FragmentOutput	o;
 
-	// o.color = float4(i.uv, 0, 1);
-
 	// i.uv are already in atlas format, transformation is made in the vertex shader
 	o.color = float4(albedoMap.SampleLevel(nearestClamp, i.uv, 0).rgb, 1);
+
+	// o.color = float4(frac(i.uv), 0, 1);
 
 	return o;
 }

@@ -25,21 +25,44 @@ static float2 UVs[] =
 	float2(0, 1),
 };
 
-VoxelFragmentInput main(VoxelVertexInput i, uint vertexID : SV_VertexID)
+void GenerateUVs(inout VoxelFragmentInput o, float3 position, uint atlasIndex, uint faceIndex)
+{
+	// Almost free switch, no code divergence :)
+	switch (faceIndex)
+	{
+		case TOP_FACE:
+			o.uv = position.xz % 2;
+			break ;
+		case FORWARD_FACE:
+			o.uv = position.xy % 2;
+			// o.uv = float2(1, 1);
+			break ;
+		default: // RIGHT_FACE
+			o.uv = position.yz % 2;
+			// o.uv = position.xz % 1;
+			break ;
+	}
+	
+	float4 sizeOffset = sizeOffsets[atlasIndex].sizeOffset;
+    sizeOffset.zw += atlas.size.zw * 0.5; // offset of half texel
+    o.uv = UvToAtlas(o.uv, sizeOffset); // TODO
+}
+
+VoxelFragmentInput main(VoxelVertexInput i)
 {
 	VoxelFragmentInput	o;
+	float3				position;
+	uint				atlasIndex;
+	uint				faceIndex;
+
+	VoxelVertex	v = {i.position, i.data};
+	UnpackVoxelVertex(v, position, atlasIndex, faceIndex);
 
 	// Standard MVP transform, TODO: bake this into one matrix (and use a push constant to send it ?)
 	float4x4 mvp = camera.projection * camera.view * object.model;
-	o.positionWS = mul(float4(i.position.xyz, 1), mvp);
+	o.positionWS = mul(float4(position.xyz, 1), mvp);
 
-	uint atlasIndex = uint(i.atlasIndex);
-	float4 sizeOffset = sizeOffsets[atlasIndex].sizeOffset;
-
-    sizeOffset.zw += atlas.size.zw * 0.5; // offset of half texel
-
-    // o.uv = UvToAtlas(float2(0, 0), sizeOffset);
-	o.uv = i.position.xy % 2;
+	GenerateUVs(o, position, atlasIndex, faceIndex);
 
 	return o;
 }

@@ -3,8 +3,8 @@
 #include "Common/VoxelStructs.hlsl"
 
 // TODO: something to manage auto-bindings from ComputeShader class
-[vk::binding(0, 1)]
-ConstantBuffer< LWGC_PerFrame > frame;
+// [vk::binding(0, 1)]
+// ConstantBuffer< LWGC_PerFrame > frame;
 
 [vk::binding(0, 2)]
 uniform Texture3D< half > noiseVolume;
@@ -28,7 +28,7 @@ RWStructuredBuffer< DrawIndirectCommand >	drawCommands;
 
 bool		IsAir(float value)
 {
-	return value < frame.time.y;
+	return value <= 0;
 }
 
 bool		NeedsFace(float neighbourVoxelValue, bool centerIsAir, out bool invertFace)
@@ -50,24 +50,26 @@ void		AddFace(float3 v1, float3 v2, float3 v3, float3 v4, bool invert, uint face
 	uint index;
 	InterlockedAdd(drawCommands[targetDrawIndex].vertexCount, 6, index);
 
+	uint atlasId = 18;
+
 	// Append a quad to test
 	if (invert)
 	{
-		vertices[index + 5] = PackVoxelVertex(v1, 0, face);
-		vertices[index + 4] = PackVoxelVertex(v4, 0, face);
-		vertices[index + 3] = PackVoxelVertex(v3, 0, face);
-		vertices[index + 2] = PackVoxelVertex(v3, 0, face);
-		vertices[index + 1] = PackVoxelVertex(v2, 0, face);
-		vertices[index + 0] = PackVoxelVertex(v1, 0, face);
+		vertices[index + 5] = PackVoxelVertex(v1, atlasId, face);
+		vertices[index + 4] = PackVoxelVertex(v4, atlasId, face);
+		vertices[index + 3] = PackVoxelVertex(v3, atlasId, face);
+		vertices[index + 2] = PackVoxelVertex(v3, atlasId, face);
+		vertices[index + 1] = PackVoxelVertex(v2, atlasId, face);
+		vertices[index + 0] = PackVoxelVertex(v1, atlasId, face);
 	}
 	else
 	{
-		vertices[index + 0] = PackVoxelVertex(v1, 0, face);
-		vertices[index + 1] = PackVoxelVertex(v4, 0, face);
-		vertices[index + 2] = PackVoxelVertex(v3, 0, face);
-		vertices[index + 3] = PackVoxelVertex(v3, 0, face);
-		vertices[index + 4] = PackVoxelVertex(v2, 0, face);
-		vertices[index + 5] = PackVoxelVertex(v1, 0, face);
+		vertices[index + 0] = PackVoxelVertex(v1, atlasId, face);
+		vertices[index + 1] = PackVoxelVertex(v4, atlasId, face);
+		vertices[index + 2] = PackVoxelVertex(v3, atlasId, face);
+		vertices[index + 3] = PackVoxelVertex(v3, atlasId, face);
+		vertices[index + 4] = PackVoxelVertex(v2, atlasId, face);
+		vertices[index + 5] = PackVoxelVertex(v1, atlasId, face);
 	}
 }
 

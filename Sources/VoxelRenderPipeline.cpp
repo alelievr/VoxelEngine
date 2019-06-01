@@ -42,10 +42,10 @@ void	VoxelRenderPipeline::Initialize(SwapChain * swapChain)
 	cube->GetTransform()->SetPosition(glm::vec3(0, 0, 5));
 	hierarchy->AddGameObject(cube);
 
-	Texture2D * test = Texture2D::Create("Assets/Textures/Blocks/acacia_leaves.png", VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
+	// Texture2D * test = Texture2D::Create("Assets/Textures/Blocks/acacia_leaves.png", VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
 
 	unlitMinecraftMaterial->SetVertexInputState(voxelVertexInputStateInfo);
-	unlitMinecraftMaterial->SetTexture(TextureBinding::Albedo, test, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
+	unlitMinecraftMaterial->SetTexture(TextureBinding::Albedo, AssetManager::blockAtlas, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
 	unlitMinecraftMaterial->SetBuffer("sizeOffsets", AssetManager::blockAtlas->GetSizeOffsetBuffer(), AssetManager::blockAtlas->GetSizeOffsetBufferSize(), VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
 	unlitMinecraftMaterial->SetBuffer("atlas", AssetManager::blockAtlas->GetAtlasSizeBuffer(), AssetManager::blockAtlas->GetAtlasSizeBufferSize(), VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
 

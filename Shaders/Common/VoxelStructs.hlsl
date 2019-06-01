@@ -9,7 +9,7 @@ struct	VoxelVertexInput
 {
 	// TODO: float4 packing ?
 	[[vk::location(0)]] float3	position : POSITION;
-	[[vk::location(1)]] float	atlasIndex : FOG;
+	[[vk::location(1)]] float	data : TEXCOORD0;
 };
 
 struct	VoxelFragmentInput
@@ -40,8 +40,8 @@ VoxelVertex	PackVoxelVertex(float3 posisiton, uint atlasIndex, uint faceIndex)
 void		UnpackVoxelVertex(VoxelVertex v, out float3 posisiton, out uint atlasIndex, out uint faceIndex)
 {
 	posisiton = v.position;
-	atlasIndex = v.data & 0xFF;
-	atlasIndex = v.data >> 8;
+	atlasIndex = asuint(v.data) & 0xFF;
+	faceIndex = asuint(v.data) >> 8;
 }
 
 #endif // VOXEL_STRUCTS
