@@ -34,7 +34,7 @@ void        main(ComputeInput i)
 	float3 uv = i.dispatchThreadId.xyz / float3(64.0);
 
     // Basic domain repetition
-    uv = frac(uv) * 2.0 - 1.0; /// mad
+    uv = frac(uv * 3) * 2.0 - 1.0; /// mad
 
-	noiseVolume[i.dispatchThreadId.xyz] = length(uv) - 0.5;
+	noiseVolume[i.dispatchThreadId.xyz] = length(uv) - 1.3;
 }

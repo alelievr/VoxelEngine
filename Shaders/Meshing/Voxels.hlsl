@@ -55,21 +55,21 @@ void		AddFace(float3 v1, float3 v2, float3 v3, float3 v4, bool invert, uint face
 	// Append a quad to test
 	if (invert)
 	{
-		vertices[index + 5] = PackVoxelVertex(v1, atlasId, face);
-		vertices[index + 4] = PackVoxelVertex(v4, atlasId, face);
-		vertices[index + 3] = PackVoxelVertex(v3, atlasId, face);
-		vertices[index + 2] = PackVoxelVertex(v3, atlasId, face);
-		vertices[index + 1] = PackVoxelVertex(v2, atlasId, face);
-		vertices[index + 0] = PackVoxelVertex(v1, atlasId, face);
+		vertices[index + 5] = PackVoxelVertex(v1, atlasId, face, VERTEX_BOTTOM_LEFT);
+		vertices[index + 4] = PackVoxelVertex(v4, atlasId, face, VERTEX_BOTTOM_RIGHT);
+		vertices[index + 3] = PackVoxelVertex(v3, atlasId, face, VERTEX_TOP_RIGHT);
+		vertices[index + 2] = PackVoxelVertex(v3, atlasId, face, VERTEX_TOP_RIGHT);
+		vertices[index + 1] = PackVoxelVertex(v2, atlasId, face, VERTEX_TOP_LEFT);
+		vertices[index + 0] = PackVoxelVertex(v1, atlasId, face, VERTEX_BOTTOM_LEFT);
 	}
 	else
 	{
-		vertices[index + 0] = PackVoxelVertex(v1, atlasId, face);
-		vertices[index + 1] = PackVoxelVertex(v4, atlasId, face);
-		vertices[index + 2] = PackVoxelVertex(v3, atlasId, face);
-		vertices[index + 3] = PackVoxelVertex(v3, atlasId, face);
-		vertices[index + 4] = PackVoxelVertex(v2, atlasId, face);
-		vertices[index + 5] = PackVoxelVertex(v1, atlasId, face);
+		vertices[index + 0] = PackVoxelVertex(v1, atlasId, face, VERTEX_BOTTOM_LEFT);
+		vertices[index + 1] = PackVoxelVertex(v4, atlasId, face, VERTEX_BOTTOM_RIGHT);
+		vertices[index + 2] = PackVoxelVertex(v3, atlasId, face, VERTEX_TOP_RIGHT);
+		vertices[index + 3] = PackVoxelVertex(v3, atlasId, face, VERTEX_TOP_RIGHT);
+		vertices[index + 4] = PackVoxelVertex(v2, atlasId, face, VERTEX_TOP_LEFT);
+		vertices[index + 5] = PackVoxelVertex(v1, atlasId, face, VERTEX_BOTTOM_LEFT);
 	}
 }
 
@@ -77,7 +77,7 @@ void		AddFace(float3 v1, float3 v2, float3 v3, float3 v4, bool invert, uint face
 void        main(ComputeInput i)
 {
 	// guard for samping outside (border)
-	if (any(i.dispatchThreadId == 128)) // TODO: hardcoded chunk size
+	if (any(i.dispatchThreadId == 127)) // TODO: hardcoded chunk size
 		return ;
 
 	float center = noiseVolume[i.dispatchThreadId];
@@ -129,7 +129,7 @@ void        main(ComputeInput i)
 	if (generateFaceTop)
 		AddFace(v4, v3, v7, v8, invertTop, TOP_FACE);
 	if (generateFaceForward)
-		AddFace(v8, v7, v6, v5, invertForward, FORWARD_FACE);
+		AddFace(v7, v6, v5, v8, invertForward, FORWARD_FACE);
 	if (generateFaceRight)
 		AddFace(v3, v2, v6, v7, invertRight, RIGHT_FACE);
 }
