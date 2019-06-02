@@ -25,7 +25,9 @@ enum class	TextureSide
 struct		BlockData
 {
 	uint8_t		id;
-	TextureSide	side;
+	uint8_t		topAtlasIndex;
+	uint8_t		sideAtlasIndex;
+	uint8_t		bottomAtlasIndex;
 };
 
 class		AssetManager
@@ -33,6 +35,8 @@ class		AssetManager
 	private:
 		// TODO: integrate FMOD in the project
 		// static std::unordered_map< std::string, SoundClass * > musics;
+
+		static std::string StripBlockImageExtension(std::string fileName, TextureSide & side);
 
 	public:
 		static std::unordered_map< std::string, BlockData >	blockDatas;

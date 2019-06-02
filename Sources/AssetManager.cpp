@@ -46,24 +46,47 @@ void						AssetManager::LoadAssets()
 		throw std::runtime_error("Can't find the block texture asset folder");
 	}
 
-	// for (const auto & entry : fs::directory_iterator(BlockTexturesPath))
 	std::sort(blockImagePathes.begin(), blockImagePathes.end());
 
 	blockAtlas = Texture2DAtlas::Create(512, 512, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
 
-	for (size_t id = 0; id < blockImagePathes.size(); id++)
+	// We start at 1 for ids because 0 is air
+	size_t blockId = 0;
+
+	for (size_t i = 0; i < blockImagePathes.size(); i++)
 	{
-		std::string fileName = LWGC::GetFileNameWithoutExtension(blockImagePathes[id]);
+		std::string fileName = LWGC::GetFileNameWithoutExtension(blockImagePathes[i]);
+		TextureSide	side = TextureSide::All;
 
-		// We add 1 for ids because 0 is air
-		blockDatas[fileName] = BlockData{
-			static_cast< uint8_t >(id),
-			TextureSide::All, // TODO
-		};
+		blockAtlas->Fit(blockImagePathes[i]);
 
-		blockAtlas->Fit(blockImagePathes[id]);
+		// strip the name from side extensions:
+		fileName = StripBlockImageExtension(fileName, side);
 
-		if (id >= MAX_BLOCK_ID - 1)
+		// Add new block
+		if (blockDatas.find(fileName) != blockDatas.end())
+		{
+			blockDatas[fileName] = BlockData { static_cast< uint8_t >(blockId), static_cast< uint8_t >(i), static_cast< uint8_t >(i), static_cast< uint8_t >(i) },
+			blockId++;
+		}
+
+		// Patch block datas (with custom textures for side, bottom or top)
+		switch (side)
+		{
+			case TextureSide::Side:
+				blockDatas[fileName].sideAtlasIndex = i;
+				break;
+			case TextureSide::Bottom:
+				blockDatas[fileName].bottomAtlasIndex = i;
+				break;
+			case TextureSide::Top:
+				blockDatas[fileName].topAtlasIndex = i;
+				break;
+			default:
+				break;
+		}
+
+		if (i >= MAX_BLOCK_ID - 1)
 		{
 			std::cerr << "Too many blocks in the Blocks texture folder !" << std::endl;
 			break;
@@ -71,6 +94,26 @@ void						AssetManager::LoadAssets()
 	}
 
 	blockAtlas->UploadAtlasDatas();
+}
+
+std::string					AssetManager::StripBlockImageExtension(std::string fileName, TextureSide & side)
+{
+	if (EndsWith(fileName, SideTexture))
+	{
+		fileName = fileName.substr(0, fileName.size() - SideTexture.size());
+		side = TextureSide::Side;
+	}
+	else if (EndsWith(fileName, BottomTexture))
+	{
+		fileName = fileName.substr(0, fileName.size() - BottomTexture.size());
+		side = TextureSide::Bottom;
+	}
+	else if (EndsWith(fileName, TopTexture))
+	{
+		fileName = fileName.substr(0, fileName.size() - TopTexture.size());
+		side = TextureSide::Top;
+	}
+	return fileName;
 }
 
 std::vector< BlockData >	AssetManager::GetBlockDatas(void)

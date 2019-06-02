@@ -36,5 +36,8 @@ void        main(ComputeInput i)
     // Basic domain repetition
     uv = frac(uv * 3) * 2.0 - 1.0; /// mad
 
-	noiseVolume[i.dispatchThreadId.xyz] = length(uv) - 1.3;
+    float density = length(uv) - 1.3;
+
+    // density must be within 0 and 1 range
+	noiseVolume[i.dispatchThreadId.xyz] = saturate(density);
 }

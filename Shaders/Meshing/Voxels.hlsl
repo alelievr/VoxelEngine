@@ -45,12 +45,15 @@ bool		NeedsFace(float neighbourVoxelValue, bool centerIsAir, out bool invertFace
 	}
 }
 
-void		AddFace(float3 v1, float3 v2, float3 v3, float3 v4, bool invert, uint face)
+uint		GetBlockAtlasId(float3 p, float density)
+{
+	return (p.x % 3) ? uint((density + 1) * 63) : uint((density + 1) * 30);
+}
+
+void		AddFace(float3 v1, float3 v2, float3 v3, float3 v4, bool invert, uint face, uint atlasId)
 {
 	uint index;
 	InterlockedAdd(drawCommands[targetDrawIndex].vertexCount, 6, index);
-
-	uint atlasId = 18;
 
 	// Append a quad to test
 	if (invert)
@@ -126,10 +129,12 @@ void        main(ComputeInput i)
 	// forward top left
 	float3 v8 = float3(0, 1, 1) + offset;
 
+	uint atlasId = GetBlockAtlasId(i.dispatchThreadId, center);
+
 	if (generateFaceTop)
-		AddFace(v4, v3, v7, v8, invertTop, TOP_FACE);
+		AddFace(v4, v3, v7, v8, invertTop, TOP_FACE, atlasId);
 	if (generateFaceForward)
-		AddFace(v7, v6, v5, v8, invertForward, FORWARD_FACE);
+		AddFace(v7, v6, v5, v8, invertForward, FORWARD_FACE, atlasId);
 	if (generateFaceRight)
-		AddFace(v3, v2, v6, v7, invertRight, RIGHT_FACE);
+		AddFace(v3, v2, v6, v7, invertRight, RIGHT_FACE, atlasId);
 }
