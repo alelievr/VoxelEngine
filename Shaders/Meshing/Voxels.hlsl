@@ -6,6 +6,15 @@
 // [vk::binding(0, 1)]
 // ConstantBuffer< LWGC_PerFrame > frame;
 
+#define BACK_DOWN_LEFT float3(0, 0, 0)
+#define BACK_DOWN_RIGHT float3(1, 0, 0)
+#define BACK_TOP_RIGHT float3(1, 1, 0)
+#define BACK_TOP_LEFT float3(0, 1, 0)
+#define FORWARD_DOWN_LEFT float3(0, 0, 1)
+#define FORWARD_DOWN_RIGHT float3(1, 0, 1)
+#define FORWARD_TOP_RIGHT float3(1, 1, 1)
+#define FORWARD_TOP_LEFT float3(0, 1, 1)
+
 [vk::binding(0, 2)]
 uniform Texture3D< half > noiseVolume;
 
@@ -50,31 +59,27 @@ uint		GetBlockAtlasId(float3 p, float density)
 	return (p.x % 3) ? uint((density + 1) * 63) : uint((density + 1) * 30);
 }
 
-void		AddFace(float3 v1, float3 v2, float3 v3, float3 v4, bool invert, uint face, uint atlasId)
+void		AddFace(float3 v1, float3 v2, float3 v3, float3 v4, float3 offset, bool invert, uint face, uint atlasId)
 {
 	uint index;
 	InterlockedAdd(drawCommands[targetDrawIndex].vertexCount, 6, index);
 
-	// Append a quad to test
+    float3 arr[] = {v1, v4, v3, v3, v2, v1};
+    uint faces[] = {VERTEX_BOTTOM_LEFT, VERTEX_BOTTOM_RIGHT, VERTEX_TOP_RIGHT, VERTEX_TOP_RIGHT, VERTEX_TOP_LEFT, VERTEX_BOTTOM_LEFT};
+
+    int start = 0;
+    int iter = 1;
 	if (invert)
-	{
-		vertices[index + 5] = PackVoxelVertex(v1, atlasId, face, VERTEX_BOTTOM_LEFT);
-		vertices[index + 4] = PackVoxelVertex(v4, atlasId, face, VERTEX_BOTTOM_RIGHT);
-		vertices[index + 3] = PackVoxelVertex(v3, atlasId, face, VERTEX_TOP_RIGHT);
-		vertices[index + 2] = PackVoxelVertex(v3, atlasId, face, VERTEX_TOP_RIGHT);
-		vertices[index + 1] = PackVoxelVertex(v2, atlasId, face, VERTEX_TOP_LEFT);
-		vertices[index + 0] = PackVoxelVertex(v1, atlasId, face, VERTEX_BOTTOM_LEFT);
-	}
-	else
-	{
-		vertices[index + 0] = PackVoxelVertex(v1, atlasId, face, VERTEX_BOTTOM_LEFT);
-		vertices[index + 1] = PackVoxelVertex(v4, atlasId, face, VERTEX_BOTTOM_RIGHT);
-		vertices[index + 2] = PackVoxelVertex(v3, atlasId, face, VERTEX_TOP_RIGHT);
-		vertices[index + 3] = PackVoxelVertex(v3, atlasId, face, VERTEX_TOP_RIGHT);
-		vertices[index + 4] = PackVoxelVertex(v2, atlasId, face, VERTEX_TOP_LEFT);
-		vertices[index + 5] = PackVoxelVertex(v1, atlasId, face, VERTEX_BOTTOM_LEFT);
-	}
+    {
+        start = 5;
+        iter = -1;
+    }
+
+    for (uint i = start, j = 0; i <= 5 && i >= 0; i += iter, j++)
+		vertices[index + i] = PackVoxelVertex(arr[j] + offset, atlasId, face, faces[j]);
 }
+
+groupshared float noiseVolumeCache[8*8*8];
 
 [numthreads(8, 8, 8)]
 void        main(ComputeInput i)
@@ -83,13 +88,26 @@ void        main(ComputeInput i)
 	if (any(i.dispatchThreadId == 127)) // TODO: hardcoded chunk size
 		return ;
 
-	float center = noiseVolume[i.dispatchThreadId];
+#if 0 // USE_TGSM
+	// We can win tow/three ALUs here by reordering the computation
+	uint dispatchIndex = i.dispatchThreadId.x + i.dispatchThreadId.y * 8 + i.dispatchThreadId.z * 8 * 8;
 
-	bool centerIsAir = IsAir(center);
+	noiseVolumeCache[dispatchIndex] = noiseVolume[i.dispatchThreadId];
 
+	GroupMemoryBarrierWithGroupSync();
+
+	float right = noiseVolumeCache[dispatchIndex + 1];
+	float top = noiseVolumeCache[dispatchIndex + 8];
+	float forward = noiseVolumeCache[dispatchIndex + 8 * 8];
+	float center = noiseVolumeCache[dispatchIndex];
+#else
 	float right = noiseVolume[i.dispatchThreadId + uint3(1, 0, 0)];
 	float top = noiseVolume[i.dispatchThreadId + uint3(0, 1, 0)];
 	float forward = noiseVolume[i.dispatchThreadId + uint3(0, 0, 1)];
+	float center = noiseVolume[i.dispatchThreadId];
+#endif
+
+	bool centerIsAir = IsAir(center);
 
 	bool invertTop;
 	bool generateFaceTop = NeedsFace(top, centerIsAir, invertTop);
@@ -103,38 +121,12 @@ void        main(ComputeInput i)
 	// Check if Metal support this (technically it should)
 	GroupMemoryBarrierWithGroupSync();
 
-	// TODO: refactor this: way too much VGPR used
-
-	// back back left
-	float3 v1 = float3(0, 0, 0) + offset;
-
-	// back back right
-	float3 v2 = float3(1, 0, 0) + offset;
-
-	// back top right
-	float3 v3 = float3(1, 1, 0) + offset;
-
-	// back top left
-	float3 v4 = float3(0, 1, 0) + offset;
-
-	// forward back left
-	float3 v5 = float3(0, 0, 1) + offset;
-
-	// forward back right
-	float3 v6 = float3(1, 0, 1) + offset;
-
-	// forward top right
-	float3 v7 = float3(1, 1, 1) + offset;
-
-	// forward top left
-	float3 v8 = float3(0, 1, 1) + offset;
-
 	uint atlasId = GetBlockAtlasId(i.dispatchThreadId, center);
 
 	if (generateFaceTop)
-		AddFace(v4, v3, v7, v8, invertTop, TOP_FACE, atlasId);
+		AddFace(BACK_TOP_LEFT, BACK_TOP_RIGHT, FORWARD_TOP_RIGHT, FORWARD_TOP_LEFT, offset, invertTop, TOP_FACE, atlasId);
 	if (generateFaceForward)
-		AddFace(v7, v6, v5, v8, invertForward, FORWARD_FACE, atlasId);
+		AddFace(FORWARD_TOP_RIGHT, FORWARD_DOWN_RIGHT, FORWARD_DOWN_LEFT, FORWARD_TOP_LEFT, offset, invertForward, FORWARD_FACE, atlasId);
 	if (generateFaceRight)
-		AddFace(v3, v2, v6, v7, invertRight, RIGHT_FACE, atlasId);
+		AddFace(BACK_TOP_RIGHT, BACK_DOWN_RIGHT, FORWARD_DOWN_RIGHT, FORWARD_TOP_RIGHT, offset, invertRight, RIGHT_FACE, atlasId);
 }
