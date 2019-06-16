@@ -20,7 +20,7 @@ class NoiseSettings // TODO: parent class ?
 		std::string		name;
 
 		NoiseSettings(void) : _dirty(false) {}
-		~NoiseSettings() = default;
+		~NoiseSettings(void) = default;
 		bool		IsDrity(void) const noexcept { return _dirty; }
 
 		static void Load(const YAML::Node & node, NoiseSettings & settings)
@@ -51,7 +51,7 @@ class ChunkLoaderSettings // TODO: parent class ?
 		int				maxChunkCount;
 
 		ChunkLoaderSettings(void) {}
-		~ChunkLoaderSettings() = default;
+		~ChunkLoaderSettings(void) = default;
 
 		static void Load(const YAML::Node & node, ChunkLoaderSettings & settings)
 		{

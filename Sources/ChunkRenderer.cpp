@@ -16,7 +16,7 @@ void			ChunkRenderer::Initialize(SwapChain * swapChain)
 	_unlitMinecraftMaterial->SetVertexInputState(voxelVertexInputStateInfo);
 	_unlitMinecraftMaterial->SetTexture(TextureBinding::Albedo, AssetManager::blockAtlas, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
 	_unlitMinecraftMaterial->SetBuffer("sizeOffsets", AssetManager::blockAtlas->GetSizeOffsetBuffer(), AssetManager::blockAtlas->GetSizeOffsetBufferSize(), VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
-	_unlitMinecraftMaterial->SetBuffer("atlas", AssetManager::blockAtlas->GetAtlasSizeBuffer(), AssetManager::blockAtlas->GetAtlasSizeBufferSize(), VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+	_unlitMinecraftMaterial->SetBuffer("atlas", AssetManager::blockAtlas->GetAtlasSizeBuffer(), AssetManager::blockAtlas->GetAtlasSizeBufferSize(), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
 
 	_renderer = new IndirectRenderer(_unlitMinecraftMaterial);
 	_hierarchy->AddGameObject(new GameObject(_renderer));
@@ -57,6 +57,8 @@ void			ChunkRenderer::CreateVoxelVertexDescription(void)
 
 void			ChunkRenderer::Render(const Camera * camera, RenderContext * context, RenderPass & pass)
 {
+	// TODO: perform occlusion culling here, frustum culling must be done inside the chunkLoader (and passed to this class)
+
 	auto renderQueue = context->GetRenderQueue();
 	VkCommandBuffer cmd = pass.GetCommandBuffer();
 
@@ -64,6 +66,8 @@ void			ChunkRenderer::Render(const Camera * camera, RenderContext * context, Ren
 	{
 		const auto & renderers = renderQueue->GetRenderersForQueue(i);
 
+		// Technically, there is only one render (the only we declared in this class)
+		// But we keep the loop for future proofing
 		for (auto renderer : renderers)
 		{
 			// we only care about the terrain here
@@ -78,22 +82,36 @@ void			ChunkRenderer::Render(const Camera * camera, RenderContext * context, Ren
 			material->BindPipeline(cmd);
 			material->BindProperties(cmd);
 
-			VkDeviceSize offsets[] = {0};
-			// vkCmdBindVertexBuffers(cmd, 0, 1, &vertexBuffer, offsets);
+			for (const auto & kp : *_map)
+			{
+				const auto & chunk = kp.second;
+				// Currently all chunks are in separate vertex buffer so we need
+				// multiple draw calls to dispay them:
+
+				// When using a drawIndirect, this offset is pretty much useless
+				VkDeviceSize offsets[] = {0};
+				vkCmdBindVertexBuffers(cmd, 0, 1, &chunk.vertexBuffer.buffer, offsets);
+
+				// We bind / rebind everything we need for the folowing draws
+				pass.UpdateDescriptorBindings();
+
+				indirectRenderer->RecordDrawCommand(cmd, 0);
+			}
 
 			// We only have one buffer currently so we don't need that
 			// indirectRenderer->SetOffset(0 * sizeof(VkDrawIndirectCommand));
 
-			pass.BindDescriptorSet(LWGCBinding::Object, renderer->GetDescriptorSet());
-
-			// We bind / rebind everything we need for the folowing draws
-			pass.UpdateDescriptorBindings();
-
-			indirectRenderer->RecordDrawCommand(cmd, 0);
+			// TODO: bind the position and not the model matrix
+			// pass.BindDescriptorSet(LWGCBinding::Object, renderer->GetDescriptorSet());
 		}
 	}
 }
 
-VkBuffer		ChunkRenderer::GetDrawBuffer(void) const { size_t unused; printf("R: %p\n", _renderer); return _renderer->GetDrawBuffer(0, unused); }
+void			ChunkRenderer::UpdateDrawData(ChunkMap * map)
+{
+	_map = map;
+}
+
+VkBuffer		ChunkRenderer::GetDrawBuffer(void) const { size_t unused; return _renderer->GetDrawBuffer(0, unused); }
 
 VkDeviceSize	ChunkRenderer::GetDrawBufferSize(void) const { return _renderer->GetDrawBufferSize(); }

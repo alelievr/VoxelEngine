@@ -3,21 +3,28 @@
 #include <string>
 
 #include "LWGC.hpp"
+#include "ChunkMap.hpp"
+
+class ChunkLoader;
 
 using namespace LWGC;
 
 class ChunkRenderer
 {
+	friend class ChunkLoader;
+
 	private:
 		SwapChain *			_swapChain;
 
 		Material *			_unlitMinecraftMaterial;
 		Hierarchy *			_hierarchy;
 		IndirectRenderer *	_renderer;
+		ChunkMap *			_map;
 
 		VkPipelineVertexInputStateCreateInfo	voxelVertexInputStateInfo;
 
 		void	CreateVoxelVertexDescription(void);
+		void	UpdateDrawData(ChunkMap * map);
 
 	public:
 		ChunkRenderer(void) = default;

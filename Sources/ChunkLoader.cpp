@@ -2,11 +2,11 @@
 #include "GUIManager.hpp"
 #include "VoxelRenderPipeline.hpp"
 
-void	ChunkLoader::Initialize(SwapChain * swapChain, VkBuffer drawBuffer, VkDeviceSize drawBufferSize)
+void	ChunkLoader::Initialize(SwapChain * swapChain, ChunkRenderer * renderer)
 {
 	const auto & settings = GUIManager::currentSettings;
 	_swapChain = swapChain;
-	_drawBuffer = drawBuffer;
+	_renderer = renderer;
 	VulkanInstance * instance = VulkanInstance::Get();
 	
 	_noiseComputeShader.LoadShader("Noises/Spheres.hlsl");
@@ -22,7 +22,7 @@ void	ChunkLoader::Initialize(SwapChain * swapChain, VkBuffer drawBuffer, VkDevic
 	// Bind compute params
 	_noiseComputeShader.SetTexture("noiseVolume", _noiseVolume, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
 	_isoSurfaceVoxelComputeShader.SetTexture("noiseVolume", _noiseVolume, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
-	_isoSurfaceVoxelComputeShader.SetBuffer("drawCommands", drawBuffer, drawBufferSize, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+	_isoSurfaceVoxelComputeShader.SetBuffer("drawCommands", _renderer->GetDrawBuffer(), _renderer->GetDrawBufferSize(), VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
 	// TODO: upload the terrain settings parameters to the noise
 
 	// Allocate resources for the compute queue:
@@ -89,8 +89,10 @@ void	ChunkLoader::GenerateChunk(const glm::ivec3 & position)
 		computeSample.End();
 	}
 
-	_loadedChunks[position] = newChunk;
+	// TODO: readback counter to have the number of generated vertices
 
+	_loadedChunks[position] = newChunk;
+	
 	std::cout << "Chunk generated at " << position << std::endl;
 }
 
@@ -105,4 +107,36 @@ void	ChunkLoader::Update(const Camera * camera)
 	{
 		GenerateChunk(chunkPosition);
 	}
+
+	// Sync generated data with the renderer
+	_renderer->UpdateDrawData(&_loadedChunks);
 }
+
+// Fence code for async:
+	// heavyComputeFence = Vk::CreateFence(true);
+
+	// fractalTexture = Texture2D::Create(2048, 2048, VK_FORMAT_R8G8B8A8_SNORM, VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+	// noiseComputeShader.SetTexture("fractal", fractalTexture, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+	// noiseComputeShader.SetBuffer(LWGCBinding::Frame, _uniformPerFrame.buffer, sizeof(LWGC_PerFrame), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+
+	// VkImageMemoryBarrier barrier = {};
+	// barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    // barrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+    // barrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+    // barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    // barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    // barrier.image = fractalTexture->GetImage();
+
+	// barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    // barrier.subresourceRange.baseMipLevel = 0;
+    // barrier.subresourceRange.levelCount = 1;
+    // barrier.subresourceRange.baseArrayLayer = 0;
+    // barrier.subresourceRange.layerCount = 1;
+
+	// barrier.srcAccessMask = 0;
+	// barrier.dstAccessMask = 0;
+
+	// noiseComputeShader.AddImageBarrier(barrier, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+
+	// // By default the descriptor set is created with stage all flags
+	// asyncComputeSet.AddBinding(0, fractalTexture, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);

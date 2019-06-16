@@ -22,30 +22,9 @@ struct VoxelVertexAttributes
 class		VoxelRenderPipeline : public RenderPipeline
 {
 	private:
-		RenderPass			computePass; // Dispatch the compute shaders
 		RenderPass			forwardPass; // Render all objects in forward
 
-		VkQueue				asyncComputeQueue;
-		uint32_t			asyncComputeQueueIndex;
-
-		CommandBufferPool	asyncComputePool;
-		VkCommandBuffer		asyncCommandBuffer;
-
-		ComputeShader		noiseComputeShader;
-		ComputeShader		isoSurfaceVoxelComputeShader;
-
-		Texture3D *			noiseVolume;
-
-		VkBuffer			vertexBuffer;
-		VkDeviceMemory		vertexMemory;
-
-		VkPipelineVertexInputStateCreateInfo	voxelVertexInputStateInfo;
-
-		Material *			unlitMinecraftMaterial;
 		Hierarchy *			hierarchy;
-		IndirectRenderer *	renderer;
-
-		DescriptorSet		asyncComputeSet;
 
 		ChunkLoader			chunkLoader;
 		ChunkRenderer		chunkRenderer;

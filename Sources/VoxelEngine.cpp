@@ -5,7 +5,7 @@
 
 VoxelEngine::VoxelEngine(TerrainSettings & settings)
 {
-	Application		app;
+	Application		app(false);
 	EventSystem *	es = app.GetEventSystem();
 	Hierarchy *		hierarchy = app.GetHierarchy();
 
@@ -45,7 +45,6 @@ VoxelEngine::VoxelEngine(TerrainSettings & settings)
 	{
 		app.Update();
 	}
-	exit(0); // TODO: remove this
 }
 
 void	VoxelEngine::Load(TerrainSettings & settings)
@@ -58,7 +57,7 @@ void	VoxelEngine::Load(TerrainSettings & settings)
 
 void	VoxelEngine::RegisterEvents(EventSystem * es, Application * app)
 {
-	es->Get()->onKey.AddListener([&](KeyCode key, ButtonAction action, int mods)
+	es->Get()->onKey.AddListener([&, app](KeyCode key, ButtonAction action, int mods)
 		{
 			if (action == ButtonAction::Press && key == KeyCode::ESCAPE)
 			{

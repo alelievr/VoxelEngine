@@ -93,6 +93,8 @@ void						AssetManager::LoadAssets()
 		}
 	}
 
+	// TODO: generate the mipmaps of the atlas
+
 	blockAtlas->UploadAtlasDatas();
 }
 

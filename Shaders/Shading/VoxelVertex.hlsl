@@ -45,7 +45,7 @@ VoxelFragmentInput main(VoxelVertexInput i)
 	UnpackVoxelVertex(v, position, atlasIndex, faceIndex, vertexPosition);
 
 	// Standard MVP transform, TODO: bake this into one matrix (and use a push constant to send it ?)
-	float4x4 mvp = camera.projection * camera.view * object.model;
+	float4x4 mvp = camera.projection * camera.view;
 	o.positionWS = mul(float4(position.xyz, 1), mvp);
 
 	GenerateUVs(o, atlasIndex, faceIndex, vertexPosition);
