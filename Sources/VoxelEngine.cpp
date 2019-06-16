@@ -45,6 +45,8 @@ VoxelEngine::VoxelEngine(TerrainSettings & settings)
 	{
 		app.Update();
 	}
+	
+	exit(0); // :)
 }
 
 void	VoxelEngine::Load(TerrainSettings & settings)

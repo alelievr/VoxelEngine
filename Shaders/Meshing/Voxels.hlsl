@@ -2,10 +2,6 @@
 #include "Common/UniformStructs.hlsl"
 #include "Common/VoxelStructs.hlsl"
 
-// TODO: something to manage auto-bindings from ComputeShader class
-// [vk::binding(0, 1)]
-// ConstantBuffer< LWGC_PerFrame > frame;
-
 #define BACK_DOWN_LEFT float3(0, 0, 0)
 #define BACK_DOWN_RIGHT float3(1, 0, 0)
 #define BACK_TOP_RIGHT float3(1, 1, 0)
@@ -20,7 +16,6 @@ uniform Texture3D< half > noiseVolume;
 
 [vk::binding(0, 3)]
 RWStructuredBuffer< VoxelVertex > vertices;
-// the field vertices_counter is bound to the index 0
 
 struct DrawIndirectCommand
 {
@@ -37,7 +32,7 @@ RWStructuredBuffer< DrawIndirectCommand >	drawCommands;
 
 bool		IsAir(float value)
 {
-	return value <= 0;
+	return value == 0;
 }
 
 bool		NeedsFace(float neighbourVoxelValue, bool centerIsAir, out bool invertFace)

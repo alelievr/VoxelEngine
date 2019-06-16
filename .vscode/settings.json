@@ -68,6 +68,7 @@
 		"optional": "cpp",
 		"iomanip": "cpp",
 		"set": "cpp",
-		"stack": "cpp"
+		"stack": "cpp",
+		"numeric": "cpp"
 	}
 }

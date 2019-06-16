@@ -25,6 +25,7 @@ class ChunkRenderer
 
 		void	CreateVoxelVertexDescription(void);
 		void	UpdateDrawData(ChunkMap * map);
+		IndirectRenderer *	GetIndirectRenderer(void);
 
 	public:
 		ChunkRenderer(void) = default;

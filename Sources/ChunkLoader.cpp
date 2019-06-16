@@ -59,14 +59,18 @@ void	ChunkLoader::GenerateChunk(const glm::ivec3 & position)
 {
 	Chunk	newChunk;
 
-	InitializeChunkData(newChunk, position);
+	if (_loadedChunks.find(position) != _loadedChunks.end())
+		newChunk = _loadedChunks[position];
+	else
+	{
+		InitializeChunkData(newChunk, position);
+	}
 	
-	_isoSurfaceVoxelComputeShader.SetBuffer("vertices", newChunk.vertexBuffer.buffer, sizeof(VoxelVertexAttributes) * 128 * 128 * 64 * 6, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
-
 	{
 		ProfilingSample computeSample("Noise Generation");
 
 		auto computeCmd = _asyncComputePool.BeginSingle();
+		_noiseComputeShader.BindFrameProperties(computeCmd);
 		_noiseComputeShader.Dispatch(computeCmd, 128, 128, 128);
 		_asyncComputePool.EndSingle(computeCmd); // TODO: unneeded fence
 
@@ -78,10 +82,13 @@ void	ChunkLoader::GenerateChunk(const glm::ivec3 & position)
 
 		auto asyncCmd = _asyncComputePool.BeginSingle();
 
+		_isoSurfaceVoxelComputeShader.SetBuffer("vertices", newChunk.vertexBuffer.buffer, sizeof(VoxelVertexAttributes) * 128 * 128 * 64 * 6, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+
 		// Retrieve the buffer offset to write the draw arguments from the GPU iso-surface algorithm
 		size_t bufferIndex = 0; // TODO
 		// _isoSurfaceVoxelComputeShader.SetBuffer("drawCommands", drawBuffer, renderer->GetDrawBufferSize(), VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
 		// Update the draw index via push-constants:
+		_renderer->GetIndirectRenderer()->SetDrawBufferValues(0, 0, 1, 0, 0);
 		_isoSurfaceVoxelComputeShader.SetPushConstant(asyncCmd, "targetDrawIndex", &bufferIndex);
 		_isoSurfaceVoxelComputeShader.Dispatch(asyncCmd, 128, 128, 128); // small dispatch to test
 		_asyncComputePool.EndSingle(asyncCmd); // fence
@@ -103,7 +110,7 @@ void	ChunkLoader::Update(const Camera * camera)
 
 	glm::ivec3 chunkPosition = camera->GetTransform()->GetPosition() / 128.0f;
 
-	if (_loadedChunks.find(chunkPosition) == _loadedChunks.end())
+	// if (_loadedChunks.find(chunkPosition) == _loadedChunks.end())
 	{
 		GenerateChunk(chunkPosition);
 	}

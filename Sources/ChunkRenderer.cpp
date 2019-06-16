@@ -115,3 +115,5 @@ void			ChunkRenderer::UpdateDrawData(ChunkMap * map)
 VkBuffer		ChunkRenderer::GetDrawBuffer(void) const { size_t unused; return _renderer->GetDrawBuffer(0, unused); }
 
 VkDeviceSize	ChunkRenderer::GetDrawBufferSize(void) const { return _renderer->GetDrawBufferSize(); }
+
+IndirectRenderer *	ChunkRenderer::GetIndirectRenderer(void) { return _renderer; }
