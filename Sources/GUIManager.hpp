@@ -10,10 +10,11 @@ using namespace LWGC;
 class		GUIManager
 {
 	private:
-		static TerrainSettings *	currentSettings;
 		static GameObject *			parent;
 
 	public:
+		static TerrainSettings *	currentSettings;
+
 		GUIManager(void) = delete;
 		GUIManager(const GUIManager &) = delete;
 		virtual ~GUIManager(void) = delete;

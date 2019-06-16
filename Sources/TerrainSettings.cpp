@@ -7,9 +7,13 @@
 
 TerrainSettings::TerrainSettings(void)
 {
+	// Default parameters, will be used if there is a problem while loading the config file
 	this->chunkSize = 16;
 	this->globalSeed = 0;
-	// this->_noiseTree = ;
+	
+	this->loaderSettings.maxChunkCount = 512;
+	this->loaderSettings.maxLoadDistance = 16;
+	this->loaderSettings.maxLoadPerFrame = 8;
 }
 
 TerrainSettings::~TerrainSettings(void)
@@ -24,6 +28,7 @@ bool		TerrainSettings::Load(const std::string & fileName, TerrainSettings & sett
 
 		settings.globalSeed = yaml["globalSeed"].as<int>();
 		settings.chunkSize = yaml["globalSeed"].as<int>();
+		ChunkLoaderSettings::Load(yaml["loaderSettings"], settings.loaderSettings);
 
 		for (const auto & node : yaml["noiseSettings"])
 		{
@@ -52,6 +57,7 @@ bool		TerrainSettings::Save(const std::string & fileName) noexcept
 	// Note: think to update the Load function when you touch this one
 	out << YAML::Key << "chunkSize" << YAML::Value << chunkSize;
 	out << YAML::Key << "globalSeed" << YAML::Value << globalSeed;
+	out << YAML::Key << "loaderSettings" << YAML::Value << loaderSettings;
 
 	// Noise Settings array:
 	out << YAML::Key << "noiseSettings" << YAML::Value;

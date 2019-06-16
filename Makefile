@@ -22,6 +22,8 @@ SRC			=	Main.cpp				\
 				VoxelRenderPipeline.cpp	\
 				GUIManager.cpp			\
 				AssetManager.cpp		\
+				ChunkRenderer.cpp		\
+				ChunkLoader.cpp			\
 
 #	Objects
 OBJDIR		=	obj

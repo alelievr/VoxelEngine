@@ -10,53 +10,55 @@
 #include "Core/Components/IndirectRenderer.hpp"
 #include "Core/Textures/Texture3D.hpp"
 #include "Core/Application.hpp"
+#include "ChunkLoader.hpp"
+#include "ChunkRenderer.hpp"
 
-namespace LWGC
+struct VoxelVertexAttributes
 {
-	struct VoxelVertexAttributes
-	{
-		glm::vec3		position;
-		uint32_t		atlasIndex;
-	};
+	glm::vec3		position;
+	uint32_t		atlasIndex;
+};
 
-	class		VoxelRenderPipeline : public RenderPipeline
-	{
-		private:
-			RenderPass			computePass; // Dispatch the compute shaders
-			RenderPass			forwardPass; // Render all objects in forward
+class		VoxelRenderPipeline : public RenderPipeline
+{
+	private:
+		RenderPass			computePass; // Dispatch the compute shaders
+		RenderPass			forwardPass; // Render all objects in forward
 
-			VkQueue				asyncComputeQueue;
-			uint32_t			asyncComputeQueueIndex;
+		VkQueue				asyncComputeQueue;
+		uint32_t			asyncComputeQueueIndex;
 
-			CommandBufferPool	asyncComputePool;
-			VkCommandBuffer		asyncCommandBuffer;
+		CommandBufferPool	asyncComputePool;
+		VkCommandBuffer		asyncCommandBuffer;
 
-			ComputeShader		noiseComputeShader;
-			ComputeShader		isoSurfaceVoxelComputeShader;
+		ComputeShader		noiseComputeShader;
+		ComputeShader		isoSurfaceVoxelComputeShader;
 
-			Texture3D *			noiseVolume;
+		Texture3D *			noiseVolume;
 
-			VkBuffer			vertexBuffer;
-			VkDeviceMemory		vertexMemory;
+		VkBuffer			vertexBuffer;
+		VkDeviceMemory		vertexMemory;
 
-			VkPipelineVertexInputStateCreateInfo	voxelVertexInputStateInfo;
+		VkPipelineVertexInputStateCreateInfo	voxelVertexInputStateInfo;
 
-			Material *			unlitMinecraftMaterial;
-			Hierarchy *			hierarchy;
-			IndirectRenderer *	renderer;
+		Material *			unlitMinecraftMaterial;
+		Hierarchy *			hierarchy;
+		IndirectRenderer *	renderer;
 
-			DescriptorSet		asyncComputeSet;
+		DescriptorSet		asyncComputeSet;
 
-			void	SetupRenderPasses(void);
-			void	CreateVertexDescription(void);
-			void	RecordIndirectDraws(RenderPass & pass, RenderContext * context);
+		ChunkLoader			chunkLoader;
+		ChunkRenderer		chunkRenderer;
 
-		protected:
-			void	Render(const std::vector< Camera * > & cameras, RenderContext * context) override;
-			void	Initialize(SwapChain * swapChain) override;
+		void	SetupRenderPasses(void);
+		void	CreateVertexDescription(void);
+		void	RecordIndirectDraws(RenderPass & pass, RenderContext * context);
 
-		public:
-			VoxelRenderPipeline(void) = default;
-			virtual ~VoxelRenderPipeline(void) = default;
-	};
-}
+	protected:
+		void	Render(const std::vector< Camera * > & cameras, RenderContext * context) override;
+		void	Initialize(SwapChain * swapChain) override;
+
+	public:
+		VoxelRenderPipeline(void) = default;
+		virtual ~VoxelRenderPipeline(void) = default;
+};

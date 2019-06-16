@@ -6,6 +6,7 @@
 
 #include YAML_INCLUDE
 
+// Settings classes
 class NoiseSettings // TODO: parent class ?
 {
 	private:
@@ -40,12 +41,43 @@ class NoiseSettings // TODO: parent class ?
 		}
 };
 
+class ChunkLoaderSettings // TODO: parent class ?
+{
+	private:
+
+	public:
+		int				maxLoadPerFrame;
+		int				maxLoadDistance; // distance is the radius of the loading sphere
+		int				maxChunkCount;
+
+		ChunkLoaderSettings(void) {}
+		~ChunkLoaderSettings() = default;
+
+		static void Load(const YAML::Node & node, ChunkLoaderSettings & settings)
+		{
+			settings.maxLoadPerFrame = node["maxLoadPerFrame"].as< int >();
+			settings.maxLoadDistance = node["maxLoadDistance"].as< float >();
+			settings.maxChunkCount = node["maxChunkCount"].as< float >();
+		}
+
+		// Serialization operators
+		friend YAML::Emitter & operator<<(YAML::Emitter & out, const ChunkLoaderSettings & noiseSettings)
+		{
+			out << YAML::Key << "maxLoadPerFrame" << YAML::Value << noiseSettings.maxLoadPerFrame;
+			out << YAML::Key << "maxLoadDistance" << YAML::Value << noiseSettings.maxLoadDistance;
+			out << YAML::Key << "maxChunkCount" << YAML::Value << noiseSettings.maxChunkCount;
+
+			return out;
+		}
+};
+
 class		TerrainSettings
 {
 	private:
 
 	public:
 		std::vector< NoiseSettings >	noiseSettings;
+		ChunkLoaderSettings				loaderSettings;
 		size_t							chunkSize;
 		int								globalSeed;
 		// NoiseTreeCSG	_noiseTree; // TODO

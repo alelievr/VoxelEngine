@@ -11,6 +11,8 @@ using namespace LWGC;
 void	VoxelRenderPipeline::Initialize(SwapChain * swapChain)
 {
 	RenderPipeline::Initialize(swapChain);
+	chunkRenderer.Initialize(swapChain);
+	chunkLoader.Initialize(swapChain, chunkRenderer.GetDrawBuffer(), chunkRenderer.GetDrawBufferSize());
 
 	hierarchy = Application::Get()->GetHierarchy();
 
@@ -31,7 +33,7 @@ void	VoxelRenderPipeline::Initialize(SwapChain * swapChain)
 	CreateVertexDescription();
 
 	// Allocate the vertex buffer:
-	Vk::CreateBuffer(sizeof(VoxelVertexAttributes) * 128 * 128 * 64 * 6, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexMemory);
+	Vk::CreateBuffer(sizeof(VoxelVertexAttributes) * 128 * 128 * 128 * 3 * 4, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexMemory);
 
 	isoSurfaceVoxelComputeShader.SetBuffer("vertices", vertexBuffer, sizeof(VoxelVertexAttributes) * 128 * 128 * 64 * 6, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
 
@@ -52,7 +54,7 @@ void	VoxelRenderPipeline::Initialize(SwapChain * swapChain)
 	renderer = new IndirectRenderer(unlitMinecraftMaterial);
 	hierarchy->AddGameObject(new GameObject(renderer));
 
-	renderer->AllocateDrawBuffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, swapChain->GetImageCount(), 1);
+	renderer->AllocateDrawBuffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, swapChain->GetImageCount(), 512);
 
 	size_t bufferIndex;
 	VkBuffer drawBuffer = renderer->GetDrawBuffer(0, bufferIndex);
@@ -164,20 +166,26 @@ void	VoxelRenderPipeline::SetupRenderPasses()
 void	VoxelRenderPipeline::Render(const std::vector< Camera * > & cameras, RenderContext * context)
 {
 	VkCommandBuffer cmd = GetCurrentFrameCommandBuffer();
+	Camera *		camera = cameras[0]; // This pipeline don't support multi-camera
+
+	// Generate new chunks if needed for each cameras
+	chunkLoader.Update(camera);
 
 	// First, before the generation, we reset the draw buffer
 	renderer->SetDrawBufferValues(0, 0, 1, 0, 0);
 
 	{
-		const auto & computeSample = ProfilingSample("Noise Generation");
+		ProfilingSample computeSample("Noise Generation");
 
 		auto computeCmd = asyncComputePool.BeginSingle();
 		noiseComputeShader.Dispatch(computeCmd, 128, 128, 128);
 		asyncComputePool.EndSingle(computeCmd); // TODO: unneeded fence
+
+		computeSample.End();
 	}
 
 	{
-		const auto & computeSample = ProfilingSample("Geometry Generation");
+		ProfilingSample computeSample("Geometry Generation");
 
 		auto asyncCmd = asyncComputePool.BeginSingle();
 
@@ -190,6 +198,8 @@ void	VoxelRenderPipeline::Render(const std::vector< Camera * > & cameras, Render
 		isoSurfaceVoxelComputeShader.SetPushConstant(asyncCmd, "targetDrawIndex", &bufferIndex);
 		isoSurfaceVoxelComputeShader.Dispatch(asyncCmd, 128, 128, 128); // small dispatch to test
 		asyncComputePool.EndSingle(asyncCmd); // fence
+
+		computeSample.End();
 	}
 
 	// TODO: readback counter to have the number of generated vertices
@@ -197,13 +207,15 @@ void	VoxelRenderPipeline::Render(const std::vector< Camera * > & cameras, Render
 	forwardPass.Begin(cmd, GetCurrentFrameBuffer(), "All Cameras");
 	{
 		forwardPass.BindDescriptorSet(LWGCBinding::Frame, perFrameSet.GetDescriptorSet());
-		forwardPass.BindDescriptorSet("asyncTexture", asyncComputeSet);
-		for (const auto camera : cameras)
 		{
 			RenderPipelineManager::beginCameraRendering.Invoke(camera);
 			forwardPass.BindDescriptorSet(LWGCBinding::Camera, camera->GetDescriptorSet());
 
-			RecordIndirectDraws(forwardPass, context);
+			// RecordIndirectDraws(forwardPass, context);
+
+			// chunkLoader.GetDrawDatas();
+
+			chunkRenderer.Render(camera, context, forwardPass);
 
 			// Optional: record all mesh renderers so we can see gizmos and debug objects
 			RenderPipeline::RecordAllMeshRenderers(forwardPass, context);

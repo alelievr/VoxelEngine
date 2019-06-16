@@ -40,4 +40,7 @@ void        main(ComputeInput i)
 
     // density must be within 0 and 1 range
 	noiseVolume[i.dispatchThreadId.xyz] = saturate(density);
+
+    // uint3 m = i.dispatchThreadId.xyz % 2;
+	// noiseVolume[i.dispatchThreadId.xyz] = m.x ^ m.y ^ m.z;
 }
