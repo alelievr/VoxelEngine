@@ -17,6 +17,11 @@ StructuredBuffer< SizeOffset >	sizeOffsets; // Metal 1 does not support Buffer<>
 [vk::binding(1, 4)]
 ConstantBuffer< Atlas >	atlas;
 
+[vk::binding(0, 5)]
+ConstantBuffer< ChunkDescription > description;
+
+[vk::push_constant] cbuffer chunkData { uint3 chunkPosition; };
+
 static float2 UVs[] =
 {
 	float2(0, 0),
@@ -46,7 +51,7 @@ VoxelFragmentInput main(VoxelVertexInput i)
 
 	// Standard MVP transform, TODO: bake this into one matrix (and use a push constant to send it ?)
 	float4x4 mvp = camera.projection * camera.view;
-	o.positionWS = mul(float4(position.xyz, 1), mvp);
+	o.positionWS = mul(float4(position.xyz + frame.time.y * chunkPosition, 1), mvp);
 
 	GenerateUVs(o, atlasIndex, faceIndex, vertexPosition);
 

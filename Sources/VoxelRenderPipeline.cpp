@@ -11,7 +11,7 @@ using namespace LWGC;
 void	VoxelRenderPipeline::Initialize(SwapChain * swapChain)
 {
 	hierarchy = Application::Get()->GetHierarchy();
-	
+
 	RenderPipeline::Initialize(swapChain);
 	chunkRenderer.Initialize(swapChain);
 	// We need the loader to have the renderer instance to sync the generated data
@@ -21,7 +21,7 @@ void	VoxelRenderPipeline::Initialize(SwapChain * swapChain)
 	auto debugMaterial = Material::Create(BuiltinShaders::Standard, BuiltinShaders::DefaultVertex);
 	debugMaterial->SetTexture(TextureBinding::Albedo, AssetManager::blockAtlas, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
 	auto cube = new GameObject(new MeshRenderer(PrimitiveType::Cube, debugMaterial));
-	cube->GetTransform()->SetPosition(glm::vec3(0, 0, 5));
+	cube->GetTransform()->SetPosition(glm::vec3(8, 8, 15));
 	hierarchy->AddGameObject(cube);
 
 	// Setup the render passes we uses:

@@ -8,7 +8,7 @@ void			ChunkRenderer::Initialize(SwapChain * swapChain)
 	_swapChain = swapChain;
 	_hierarchy = Application::Get()->GetHierarchy();
 	const auto & settings = GUIManager::currentSettings;
-	
+
 	CreateVoxelVertexDescription();
 
 	// Create material we will use to display the terrain
@@ -24,6 +24,14 @@ void			ChunkRenderer::Initialize(SwapChain * swapChain)
 	// Initialize internal buffers
 	_renderer->AllocateDrawBuffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, swapChain->GetImageCount(), 512); // TODO: hardcoded constant
 	_renderer->SetDrawBufferValues(0, 0, 1, 0, 0);
+
+	// Initialize chunk description buffer:
+	_description.chunkSize = glm::ivec3(settings->chunkSize, settings->chunkSize, settings->chunkSize);
+	Vk::CreateBuffer(sizeof(ChunkDescription), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, _chunkDescription.buffer, _chunkDescription.memory);
+	Vk::UploadToMemory(_chunkDescription.memory, &_description, sizeof(ChunkDescription), 0, true);
+
+	// Bind the chunk description cbuffer:
+	_unlitMinecraftMaterial->SetBuffer("description", _chunkDescription.buffer, sizeof(ChunkDescription), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
 }
 
 void			ChunkRenderer::CreateVoxelVertexDescription(void)
@@ -62,6 +70,8 @@ void			ChunkRenderer::Render(const Camera * camera, RenderContext * context, Ren
 	auto renderQueue = context->GetRenderQueue();
 	VkCommandBuffer cmd = pass.GetCommandBuffer();
 
+	// TODO: check if settings have changed and upload the new chunk description
+
 	for (uint32_t i = 0; i < renderQueue->GetQueueCount(); i++)
 	{
 		const auto & renderers = renderQueue->GetRenderersForQueue(i);
@@ -92,9 +102,14 @@ void			ChunkRenderer::Render(const Camera * camera, RenderContext * context, Ren
 				VkDeviceSize offsets[] = {0};
 				vkCmdBindVertexBuffers(cmd, 0, 1, &chunk.vertexBuffer.buffer, offsets);
 
+				material->SetPushConstant(cmd, "chunkPosition", &chunk.positionWS);
+				material->BindFrameProperties(cmd);
+				// std::cout << chunk.positionWS << std::endl;
+
 				// We bind / rebind everything we need for the folowing draws
 				pass.UpdateDescriptorBindings();
 
+				indirectRenderer->SetOffset(chunk.drawBufferIndex * sizeof(VkDrawIndirectCommand));
 				indirectRenderer->RecordDrawCommand(cmd, 0);
 			}
 

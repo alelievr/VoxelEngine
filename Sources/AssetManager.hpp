@@ -35,8 +35,10 @@ class		AssetManager
 	private:
 		// TODO: integrate FMOD in the project
 		// static std::unordered_map< std::string, SoundClass * > musics;
+		static UniformBuffer	gpuBlockDatas;
 
-		static std::string StripBlockImageExtension(std::string fileName, TextureSide & side);
+		static std::string		StripBlockImageExtension(std::string fileName, TextureSide & side);
+		static void				GenerateGPUBlockDatas(void);
 
 	public:
 		static std::unordered_map< std::string, BlockData >	blockDatas;
@@ -48,7 +50,7 @@ class		AssetManager
 
 		static void LoadAssets();
 
-		static std::vector< BlockData >	GetBlockDatas(void);
+		static VkBuffer	GetBlockDatasForGPU(void);
 
 		AssetManager &	operator=(AssetManager const & src) = delete;
 };

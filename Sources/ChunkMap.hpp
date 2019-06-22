@@ -28,4 +28,3 @@ struct PositionHash
 };
 
 using ChunkMap = std::unordered_map< glm::ivec3, Chunk, PositionHash >;
-

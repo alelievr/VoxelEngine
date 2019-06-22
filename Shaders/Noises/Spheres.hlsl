@@ -1,7 +1,6 @@
 #include "Common/InputCompute.hlsl"
 #include "Common/UniformStructs.hlsl"
 
-// TODO: something to manage auto-bindings from ComputeShader class
 [vk::binding(0, 0)]
 ConstantBuffer< LWGC_PerFrame > frame;
 
@@ -31,16 +30,16 @@ float simpleNoise(float2 p)
 [numthreads(8, 8, 8)]
 void        main(ComputeInput i)
 {
-	float3 uv = i.dispatchThreadId.xyz / float3(64.0);
+	float3 uv = i.dispatchThreadId.xyz / float3(128.0);
 
     // Basic domain repetition
-    uv = frac(uv * 3) * 2.0 - 1.0; /// mad
+    uv = frac(uv * 1) * 2.0 - 1.0; /// mad
 
     float density = length(uv) - 1.3;
 
     // density must be within 0 and 1 range
 	noiseVolume[i.dispatchThreadId.xyz] = saturate(density);
 
-    // uint3 m = i.dispatchThreadId.xyz % 2;
+    // uint3 m = (i.dispatchThreadId.xyz / 1) % 2;
 	// noiseVolume[i.dispatchThreadId.xyz] = m.x ^ m.y ^ m.z;
 }

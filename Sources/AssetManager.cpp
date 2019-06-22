@@ -12,6 +12,7 @@ using namespace LWGC;
 
 std::unordered_map< std::string, BlockData >	AssetManager::blockDatas;
 Texture2DAtlas *								AssetManager::blockAtlas;
+VkBuffer										AssetManager::gpuBlockDatas;
 
 const std::string			AssetPath = "Assets";
 const std::string			TexturesPath = AssetPath + "/Textures";
@@ -118,7 +119,12 @@ std::string					AssetManager::StripBlockImageExtension(std::string fileName, Tex
 	return fileName;
 }
 
-std::vector< BlockData >	AssetManager::GetBlockDatas(void)
+void					AssetManager::GenerateGPUBlockDatas(void)
+{
+
+}
+
+VkBuffer				AssetManager::GetBlockDatasForGPU(void)
 {
 	std::vector< BlockData >	blocks;
 

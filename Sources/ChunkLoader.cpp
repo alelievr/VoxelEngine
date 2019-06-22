@@ -8,7 +8,7 @@ void	ChunkLoader::Initialize(SwapChain * swapChain, ChunkRenderer * renderer)
 	_swapChain = swapChain;
 	_renderer = renderer;
 	VulkanInstance * instance = VulkanInstance::Get();
-	
+
 	_noiseComputeShader.LoadShader("Noises/Spheres.hlsl");
 	// Load the compute shader used to generate the noise and the geometry
 	_isoSurfaceVoxelComputeShader.LoadShader("Meshing/Voxels.hlsl");
@@ -39,9 +39,9 @@ void	ChunkLoader::InitializeChunkData(Chunk & newChunk, const glm::ivec3 & posit
 	// memory consumption.
 
 	// TODO: be careful of the GPU out of memory !
-	
+
 	// Allocate the vertex buffer: (TODO: reuse a temp vertex buffer)
-	newChunk.vertexBufferSize = sizeof(VoxelVertexAttributes) * 128 * 128 * 128 * 12;
+	newChunk.vertexBufferSize = sizeof(VoxelVertexAttributes) * 128 * 128 * 128 * 2; // Allocate way less memory for the GPU to not stall
 	Vk::CreateBuffer(
 		newChunk.vertexBufferSize,
 		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
@@ -49,10 +49,18 @@ void	ChunkLoader::InitializeChunkData(Chunk & newChunk, const glm::ivec3 & posit
 		newChunk.vertexBuffer.buffer,
 		newChunk.vertexBuffer.memory
 	);
-	
+
 	newChunk.positionWS = position;
 	newChunk.lod = 0; // We don't suport LODs yet
 	newChunk.drawBufferIndex = -1;
+}
+
+int		ChunkLoader::GetEmptyDrawIndexSlot(void)
+{
+	static int id = 0;
+
+	// TODO: a system to manage chunk rendering slots
+	return id++ % 512;
 }
 
 void	ChunkLoader::GenerateChunk(const glm::ivec3 & position)
@@ -65,7 +73,7 @@ void	ChunkLoader::GenerateChunk(const glm::ivec3 & position)
 	{
 		InitializeChunkData(newChunk, position);
 	}
-	
+
 	{
 		ProfilingSample computeSample("Noise Generation");
 
@@ -85,11 +93,11 @@ void	ChunkLoader::GenerateChunk(const glm::ivec3 & position)
 		_isoSurfaceVoxelComputeShader.SetBuffer("vertices", newChunk.vertexBuffer.buffer, sizeof(VoxelVertexAttributes) * 128 * 128 * 64 * 6, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
 
 		// Retrieve the buffer offset to write the draw arguments from the GPU iso-surface algorithm
-		size_t bufferIndex = 0; // TODO
+		newChunk.drawBufferIndex = GetEmptyDrawIndexSlot(); // TODO
 		// _isoSurfaceVoxelComputeShader.SetBuffer("drawCommands", drawBuffer, renderer->GetDrawBufferSize(), VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+		_renderer->GetIndirectRenderer()->SetDrawBufferValues(0, newChunk.drawBufferIndex, 0, 1, 0, 0);
 		// Update the draw index via push-constants:
-		_renderer->GetIndirectRenderer()->SetDrawBufferValues(0, 0, 1, 0, 0);
-		_isoSurfaceVoxelComputeShader.SetPushConstant(asyncCmd, "targetDrawIndex", &bufferIndex);
+		_isoSurfaceVoxelComputeShader.SetPushConstant(asyncCmd, "targetDrawIndex", &newChunk.drawBufferIndex);
 		_isoSurfaceVoxelComputeShader.Dispatch(asyncCmd, 128, 128, 128); // small dispatch to test
 		_asyncComputePool.EndSingle(asyncCmd); // fence
 
@@ -99,7 +107,7 @@ void	ChunkLoader::GenerateChunk(const glm::ivec3 & position)
 	// TODO: readback counter to have the number of generated vertices
 
 	_loadedChunks[position] = newChunk;
-	
+
 	std::cout << "Chunk generated at " << position << std::endl;
 }
 
@@ -108,9 +116,9 @@ void	ChunkLoader::Update(const Camera * camera)
 	// TODO: go full async here ans see if we can win some perf
 	// TODO: try to enabled async during the rendering too
 
-	glm::ivec3 chunkPosition = camera->GetTransform()->GetPosition() / 128.0f;
+	glm::ivec3 chunkPosition = glm::floor(camera->GetTransform()->GetPosition() / 128.0f);
 
-	// if (_loadedChunks.find(chunkPosition) == _loadedChunks.end())
+	if (_loadedChunks.find(chunkPosition) == _loadedChunks.end())
 	{
 		GenerateChunk(chunkPosition);
 	}

@@ -8,9 +8,9 @@
 TerrainSettings::TerrainSettings(void)
 {
 	// Default parameters, will be used if there is a problem while loading the config file
-	this->chunkSize = 16;
+	this->chunkSize = 128;
 	this->globalSeed = 0;
-	
+
 	this->loaderSettings.maxChunkCount = 512;
 	this->loaderSettings.maxLoadDistance = 16;
 	this->loaderSettings.maxLoadPerFrame = 8;

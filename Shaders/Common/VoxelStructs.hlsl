@@ -34,6 +34,11 @@ struct VoxelVertex
 	float data;
 };
 
+struct ChunkDescription
+{
+	uint3	chunkSize;
+};
+
 // function to pack/unpack VoxelVertexDatas
 VoxelVertex	PackVoxelVertex(float3 posisiton, uint atlasIndex, uint faceIndex, uint vertexPosition)
 {

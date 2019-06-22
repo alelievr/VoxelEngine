@@ -32,6 +32,7 @@ class ChunkLoader
 		ChunkRenderer *		_renderer;
 
 		void	InitializeChunkData(Chunk & newChunk, const glm::ivec3 & position);
+		int		GetEmptyDrawIndexSlot(void);
 
 	public:
 		ChunkLoader(void) = default;

@@ -9,6 +9,11 @@ class ChunkLoader;
 
 using namespace LWGC;
 
+struct ChunkDescription
+{
+	glm::ivec3 chunkSize;
+};
+
 class ChunkRenderer
 {
 	friend class ChunkLoader;
@@ -20,6 +25,8 @@ class ChunkRenderer
 		Hierarchy *			_hierarchy;
 		IndirectRenderer *	_renderer;
 		ChunkMap *			_map;
+		UniformBuffer		_chunkDescription;
+		ChunkDescription	_description;
 
 		VkPipelineVertexInputStateCreateInfo	voxelVertexInputStateInfo;
 

@@ -34,7 +34,7 @@ VoxelEngine::VoxelEngine(TerrainSettings & settings)
 	}
 
 	auto cam = new GameObject(new Camera());
-	cam->GetTransform()->SetPosition(glm::vec3(0, 0, -5));
+	cam->GetTransform()->SetPosition(glm::vec3(8, 8, 8));
 	cam->AddComponent(new FreeCameraControls());
 	_gui = new GameObject(new ProfilerPanel());
 
@@ -45,7 +45,7 @@ VoxelEngine::VoxelEngine(TerrainSettings & settings)
 	{
 		app.Update();
 	}
-	
+
 	exit(0); // :)
 }
 
