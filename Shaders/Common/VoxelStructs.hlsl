@@ -44,7 +44,7 @@ struct BlockData
 	uint	topAtlasIndex;
 	uint	sideAtlasIndex;
 	uint	bottomAtlasIndex;
-}
+};
 
 // function to pack/unpack VoxelVertexDatas
 VoxelVertex	PackVoxelVertex(float3 posisiton, uint atlasIndex, uint faceIndex, uint vertexPosition)

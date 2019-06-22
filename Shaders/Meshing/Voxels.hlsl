@@ -28,6 +28,7 @@ struct DrawIndirectCommand
 [vk::binding(0, 4)]
 RWStructuredBuffer< DrawIndirectCommand >	drawCommands;
 
+[vk::binding(0, 5)]
 StructuredBuffer< BlockData >				blockDatas;
 
 [vk::push_constant] cbuffer currentData { int targetDrawIndex; };
