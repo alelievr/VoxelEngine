@@ -18,6 +18,7 @@ const std::string			AssetPath = "Assets";
 const std::string			TexturesPath = AssetPath + "/Textures";
 const std::string			BlockTexturesPath = TexturesPath + "/Blocks";
 const std::string			EffectTexturesPath = TexturesPath + "/Effects";
+const std::string			AnimatedBloksTexturesPath = TexturesPath + "/AnimatedBlocks";
 
 const std::string			SideTexture = "_side";
 const std::string			BottomTexture = "_bottom";
@@ -33,6 +34,20 @@ void						AssetManager::LoadAssets()
 
 	DIR *dir;
 	struct dirent *ent;
+	if ((dir = opendir(AnimatedBloksTexturesPath.c_str())) != NULL)
+	{
+		while ((ent = readdir(dir)) != NULL)
+		{
+			if (LWGC::GetExtension(ent->d_name) == ImageFormatExtension)
+				blockImagePathes.push_back(std::string(AnimatedBloksTexturesPath + "/" + ent->d_name));
+		}
+		closedir(dir);
+	}
+	else
+	{
+		throw std::runtime_error("Can't find the block texture asset folder");
+	}
+
 	if ((dir = opendir(BlockTexturesPath.c_str())) != NULL)
 	{
 		while ((ent = readdir(dir)) != NULL)
@@ -49,7 +64,8 @@ void						AssetManager::LoadAssets()
 
 	std::sort(blockImagePathes.begin(), blockImagePathes.end());
 
-	blockAtlas = Texture2DAtlas::Create(512, 512, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
+	// blockAtlas = Texture2DAtlas::Create(512, 512, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
+	blockAtlas = Texture2DAtlas::Create(160, 2048, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
 
 	// We start at 1 for ids because 0 is air
 	size_t blockId = 0;
@@ -93,7 +109,6 @@ void						AssetManager::LoadAssets()
 			break;
 		}
 	}
-
 	// TODO: generate the mipmaps of the atlas
 
 	blockAtlas->UploadAtlasDatas();
