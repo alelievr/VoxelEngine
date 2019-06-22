@@ -28,6 +28,8 @@ struct DrawIndirectCommand
 [vk::binding(0, 4)]
 RWStructuredBuffer< DrawIndirectCommand >	drawCommands;
 
+StructuredBuffer< BlockData >				blockDatas;
+
 [vk::push_constant] cbuffer currentData { int targetDrawIndex; };
 
 bool		IsAir(float value)
