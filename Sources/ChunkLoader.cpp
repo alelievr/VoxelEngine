@@ -2,6 +2,8 @@
 #include "GUIManager.hpp"
 #include "VoxelRenderPipeline.hpp"
 
+const int MaxChunkVertexSize = sizeof(VoxelVertexAttributes) * 128 * 128 * 128 * 6;
+
 void	ChunkLoader::Initialize(SwapChain * swapChain, ChunkRenderer * renderer)
 {
 	const auto & settings = GUIManager::currentSettings;
@@ -41,7 +43,7 @@ void	ChunkLoader::InitializeChunkData(Chunk & newChunk, const glm::ivec3 & posit
 	// TODO: be careful of the GPU out of memory !
 
 	// Allocate the vertex buffer: (TODO: reuse a temp vertex buffer)
-	newChunk.vertexBufferSize = sizeof(VoxelVertexAttributes) * 128 * 128 * 128 * 2; // Allocate way less memory for the GPU to not stall
+	newChunk.vertexBufferSize = MaxChunkVertexSize; // Allocate way less memory for the GPU to not stall
 	Vk::CreateBuffer(
 		newChunk.vertexBufferSize,
 		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
@@ -90,7 +92,7 @@ void	ChunkLoader::GenerateChunk(const glm::ivec3 & position)
 
 		auto asyncCmd = _asyncComputePool.BeginSingle();
 
-		_isoSurfaceVoxelComputeShader.SetBuffer("vertices", newChunk.vertexBuffer.buffer, sizeof(VoxelVertexAttributes) * 128 * 128 * 64 * 6, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+		_isoSurfaceVoxelComputeShader.SetBuffer("vertices", newChunk.vertexBuffer.buffer, MaxChunkVertexSize, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
 
 		// Retrieve the buffer offset to write the draw arguments from the GPU iso-surface algorithm
 		newChunk.drawBufferIndex = GetEmptyDrawIndexSlot(); // TODO

@@ -109,7 +109,7 @@ void			ChunkRenderer::Render(const Camera * camera, RenderContext * context, Ren
 				// We bind / rebind everything we need for the folowing draws
 				pass.UpdateDescriptorBindings();
 
-				indirectRenderer->SetOffset(chunk.drawBufferIndex * sizeof(VkDrawIndirectCommand));
+				// indirectRenderer->SetOffset(chunk.drawBufferIndex);
 				indirectRenderer->RecordDrawCommand(cmd, 0);
 			}
 
