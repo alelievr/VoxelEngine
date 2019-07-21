@@ -3,6 +3,8 @@
 #include "VoxelRenderPipeline.hpp"
 #include "GUIManager.hpp"
 
+#define	MAX_CHUNK_PER_VIEW	128 // TODO: make it a config param
+
 void			ChunkRenderer::Initialize(SwapChain * swapChain)
 {
 	_swapChain = swapChain;
@@ -63,12 +65,15 @@ void			ChunkRenderer::CreateVoxelVertexDescription(void)
 	voxelVertexInputStateInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 }
 
+glm::vec3	pushConstantPositions[MAX_CHUNK_PER_VIEW];
+
 void			ChunkRenderer::Render(const Camera * camera, RenderContext * context, RenderPass & pass)
 {
 	// TODO: perform occlusion culling here, frustum culling must be done inside the chunkLoader (and passed to this class)
 
-	auto renderQueue = context->GetRenderQueue();
+	auto			renderQueue = context->GetRenderQueue();
 	VkCommandBuffer cmd = pass.GetCommandBuffer();
+	int				chunkIndex = 0;
 
 	// TODO: check if settings have changed and upload the new chunk description
 
@@ -95,6 +100,7 @@ void			ChunkRenderer::Render(const Camera * camera, RenderContext * context, Ren
 			for (const auto & kp : *_map)
 			{
 				const auto & chunk = kp.second;
+				pushConstantPositions[chunkIndex] = chunk.positionWS;
 				// Currently all chunks are in separate vertex buffer so we need
 				// multiple draw calls to dispay them:
 
@@ -102,15 +108,16 @@ void			ChunkRenderer::Render(const Camera * camera, RenderContext * context, Ren
 				VkDeviceSize offsets[] = {0};
 				vkCmdBindVertexBuffers(cmd, 0, 1, &chunk.vertexBuffer.buffer, offsets);
 
-				material->SetPushConstant(cmd, "chunkPosition", &chunk.positionWS);
+				material->SetPushConstant(cmd, "chunkPosition", pushConstantPositions + chunkIndex);
 				material->BindFrameProperties(cmd);
-				// std::cout << chunk.positionWS << std::endl;
 
 				// We bind / rebind everything we need for the folowing draws
 				pass.UpdateDescriptorBindings();
 
 				// indirectRenderer->SetOffset(chunk.drawBufferIndex);
 				indirectRenderer->RecordDrawCommand(cmd, 0);
+
+				chunkIndex++;
 			}
 
 			// We only have one buffer currently so we don't need that

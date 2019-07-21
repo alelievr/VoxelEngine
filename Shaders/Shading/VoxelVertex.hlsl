@@ -20,7 +20,7 @@ ConstantBuffer< Atlas >	atlas;
 [vk::binding(0, 5)]
 ConstantBuffer< ChunkDescription > description;
 
-[vk::push_constant] cbuffer chunkData { uint3 chunkPosition; };
+[vk::push_constant] cbuffer chunkData { float3 chunkPosition; };
 
 static float2 UVs[] =
 {
